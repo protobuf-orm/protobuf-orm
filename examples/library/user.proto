@@ -1,0 +1,32 @@
+edition = "2023";
+
+package library;
+
+import "google/protobuf/timestamp.proto";
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/library";
+
+message User {
+  // Explicit field definition.
+  bytes id = 1 [(orm.field) = {
+    type: TYPE_UUID
+    key: true
+    default: ""
+  }];
+  // Implicit field definition.
+  string name = 2;
+  // Reference is out of order.
+  map<string, string> labels = 5;
+  // Disable mapping.
+  string desc = 3 [(orm.field) = {disabled: true}];
+  uint32 age = 4;
+
+  // Self referencing.
+  User parent = 6;
+
+  google.protobuf.Timestamp date_created = 15 [(orm.field) = {
+    immutable: true
+    default: ""
+  }];
+}

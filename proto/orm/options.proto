@@ -1,0 +1,47 @@
+edition = "2023";
+
+package orm;
+
+import "orm/index.proto";
+import "orm/ref.proto";
+import "orm/rpc.proto";
+import "orm/type.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/ormpb";
+
+message MessageOptions {
+  bool disabled = 1;
+
+  RpcOptions rpc = 2;
+  repeated Index indexes = 3;
+}
+
+message FieldOptions {
+  bool disabled = 1;
+
+  Type type = 2;
+
+  bool key = 5;
+  bool unique = 6;
+  bool nullable = 7;
+  bool immutable = 8;
+
+  // Mark a field as optional for AddRequest message.
+  // This is useful when a field is unique and
+  // therefore cannot have a default value, but the
+  // server supplies (or generates) the value, so you
+  // want to make the field optional for the user.
+  bool supplied = 9;
+
+  // TODO: Any?
+  string default = 16;
+}
+
+message EdgeOptions {
+  bool disabled = 1;
+
+  Ref bind = 2;
+
+  bool nullable = 7;
+  bool immutable = 8;
+}

@@ -1,0 +1,12 @@
+version: v2
+inputs:
+  - directory: proto
+  - directory: examples
+    paths:
+      - examples/library
+plugins:
+  - local: protoc-gen-go
+    out: .
+    opt:
+      - module=github.com/protobuf-orm/protobuf-orm
+      - default_api_level=API_OPAQUE

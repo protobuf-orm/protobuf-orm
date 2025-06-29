@@ -1,0 +1,15 @@
+version: v2
+modules:
+  - path: ./proto
+  - path: ./examples
+lint:
+  use:
+    - BASIC
+    - STANDARD
+  except:
+    - ENUM_NO_ALLOW_ALIAS
+    - PACKAGE_DIRECTORY_MATCH
+    - PACKAGE_VERSION_SUFFIX
+    - PACKAGE_SAME_DIRECTORY
+  enum_zero_value_suffix: _UNSPECIFIED
+  service_suffix: Service
