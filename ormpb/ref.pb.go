@@ -21,13 +21,11 @@ const (
 )
 
 type Ref struct {
-	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Name        *string                `protobuf:"bytes,1,opt,name=name"`
-	xxx_hidden_Number      int32                  `protobuf:"varint,2,opt,name=number"`
-	XXX_raceDetectHookData protoimpl.RaceDetectHookData
-	XXX_presence           [1]uint32
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name   string                 `protobuf:"bytes,1,opt,name=name"`
+	xxx_hidden_Number int32                  `protobuf:"varint,2,opt,name=number"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *Ref) Reset() {
@@ -57,10 +55,7 @@ func (x *Ref) ProtoReflect() protoreflect.Message {
 
 func (x *Ref) GetName() string {
 	if x != nil {
-		if x.xxx_hidden_Name != nil {
-			return *x.xxx_hidden_Name
-		}
-		return ""
+		return x.xxx_hidden_Name
 	}
 	return ""
 }
@@ -73,58 +68,26 @@ func (x *Ref) GetNumber() int32 {
 }
 
 func (x *Ref) SetName(v string) {
-	x.xxx_hidden_Name = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 2)
+	x.xxx_hidden_Name = v
 }
 
 func (x *Ref) SetNumber(v int32) {
 	x.xxx_hidden_Number = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 2)
-}
-
-func (x *Ref) HasName() bool {
-	if x == nil {
-		return false
-	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
-}
-
-func (x *Ref) HasNumber() bool {
-	if x == nil {
-		return false
-	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
-}
-
-func (x *Ref) ClearName() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
-	x.xxx_hidden_Name = nil
-}
-
-func (x *Ref) ClearNumber() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
-	x.xxx_hidden_Number = 0
 }
 
 type Ref_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Name   *string
-	Number *int32
+	Name   string
+	Number int32
 }
 
 func (b0 Ref_builder) Build() *Ref {
 	m0 := &Ref{}
 	b, x := &b0, m0
 	_, _ = b, x
-	if b.Name != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 2)
-		x.xxx_hidden_Name = b.Name
-	}
-	if b.Number != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 2)
-		x.xxx_hidden_Number = *b.Number
-	}
+	x.xxx_hidden_Name = b.Name
+	x.xxx_hidden_Number = b.Number
 	return m0
 }
 
@@ -132,10 +95,10 @@ var File_orm_ref_proto protoreflect.FileDescriptor
 
 const file_orm_ref_proto_rawDesc = "" +
 	"\n" +
-	"\rorm/ref.proto\x12\x03orm\"1\n" +
-	"\x03Ref\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x16\n" +
-	"\x06number\x18\x02 \x01(\x05R\x06numberB,Z*github.com/protobuf-orm/protobuf-orm/ormpbb\beditionsp\xe8\a"
+	"\rorm/ref.proto\x12\x03orm\"?\n" +
+	"\x03Ref\x12\x19\n" +
+	"\x04name\x18\x01 \x01(\tB\x05\xaa\x01\x02\b\x02R\x04name\x12\x1d\n" +
+	"\x06number\x18\x02 \x01(\x05B\x05\xaa\x01\x02\b\x02R\x06numberB,Z*github.com/protobuf-orm/protobuf-orm/ormpbb\beditionsp\xe8\a"
 
 var file_orm_ref_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_orm_ref_proto_goTypes = []any{

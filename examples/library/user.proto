@@ -22,8 +22,14 @@ message User {
   string desc = 3 [(orm.field) = {disabled: true}];
   uint32 age = 4;
 
-  // Self referencing.
-  User parent = 6;
+  // O2M same type
+  User parent = 6 [(orm.edge) = {
+    from: {
+      name: "children"
+      number: 7
+    }
+  }];
+  repeated User children = 7;
 
   google.protobuf.Timestamp date_created = 15 [(orm.field) = {
     immutable: true

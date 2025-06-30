@@ -27,7 +27,7 @@ func TestSingleMessage(t *testing.T) {
 	x.Equal(msg_name, entity.FullName())
 
 	props := slices.Collect(entity.Props())
-	x.Len(props, 6)
+	x.Len(props, 7)
 
 	i := 0
 	take := func() graph.Prop {
@@ -75,6 +75,20 @@ func TestSingleMessage(t *testing.T) {
 		x.Equal(msg_name.Append("parent"), v.FullName())
 		x.Equal(protoreflect.FieldNumber(6), v.Number())
 		x.Same(entity, v.Target())
+		x.Nil(v.Reverse())
+		x.NotNil(v.Inverse())
+		x.Equal(msg_name.Append("children"), v.Inverse().FullName())
+	}
+	{
+		p := take()
+		x.Implements((*graph.Edge)(nil), p)
+		v := p.(graph.Edge)
+		x.Equal(msg_name.Append("children"), v.FullName())
+		x.Equal(protoreflect.FieldNumber(7), v.Number())
+		x.Same(entity, v.Target())
+		x.NotNil(v.Reverse())
+		x.Nil(v.Inverse())
+		x.Equal(msg_name.Append("parent"), v.Reverse().FullName())
 	}
 	{
 		p := take()

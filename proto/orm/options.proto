@@ -41,6 +41,7 @@ message EdgeOptions {
   bool disabled = 1;
 
   Ref bind = 2;
+  Ref from = 3;
 
   bool nullable = 7;
   bool immutable = 8;

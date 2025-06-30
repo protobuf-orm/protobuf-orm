@@ -27,6 +27,8 @@ type protoProp struct {
 	entity *protoEntity
 }
 
+// Note that it does not find a inverse for the edge
+// since not all props are parsed yet.
 func parseProp(ctx context.Context, g *Graph, e *protoEntity, mf protoreflect.FieldDescriptor) (Prop, error) {
 	of := proto.GetExtension(mf.Options(), ormpb.E_Field).(*ormpb.FieldOptions)
 	oe := proto.GetExtension(mf.Options(), ormpb.E_Edge).(*ormpb.EdgeOptions)
@@ -74,7 +76,7 @@ func parseProp(ctx context.Context, g *Graph, e *protoEntity, mf protoreflect.Fi
 		}, nil
 	}
 
-	// Test if reference is valid entity.
+	// Test if the reference is valid entity.
 	target_name := mf.Message().FullName()
 	target, ok := g.Entities[target_name]
 	if !ok {

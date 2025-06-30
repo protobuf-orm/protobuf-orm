@@ -30,6 +30,7 @@ type User struct {
 	xxx_hidden_Desc        *string                `protobuf:"bytes,3,opt,name=desc"`
 	xxx_hidden_Age         uint32                 `protobuf:"varint,4,opt,name=age"`
 	xxx_hidden_Parent      *User                  `protobuf:"bytes,6,opt,name=parent"`
+	xxx_hidden_Children    *[]*User               `protobuf:"bytes,7,rep,name=children"`
 	xxx_hidden_DateCreated *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=date_created,json=dateCreated"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
@@ -110,6 +111,15 @@ func (x *User) GetParent() *User {
 	return nil
 }
 
+func (x *User) GetChildren() []*User {
+	if x != nil {
+		if x.xxx_hidden_Children != nil {
+			return *x.xxx_hidden_Children
+		}
+	}
+	return nil
+}
+
 func (x *User) GetDateCreated() *timestamppb.Timestamp {
 	if x != nil {
 		return x.xxx_hidden_DateCreated
@@ -122,12 +132,12 @@ func (x *User) SetId(v []byte) {
 		v = []byte{}
 	}
 	x.xxx_hidden_Id = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 8)
 }
 
 func (x *User) SetName(v string) {
 	x.xxx_hidden_Name = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 8)
 }
 
 func (x *User) SetLabels(v map[string]string) {
@@ -136,16 +146,20 @@ func (x *User) SetLabels(v map[string]string) {
 
 func (x *User) SetDesc(v string) {
 	x.xxx_hidden_Desc = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 8)
 }
 
 func (x *User) SetAge(v uint32) {
 	x.xxx_hidden_Age = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 8)
 }
 
 func (x *User) SetParent(v *User) {
 	x.xxx_hidden_Parent = v
+}
+
+func (x *User) SetChildren(v []*User) {
+	x.xxx_hidden_Children = &v
 }
 
 func (x *User) SetDateCreated(v *timestamppb.Timestamp) {
@@ -234,8 +248,9 @@ type User_builder struct {
 	// Disable mapping.
 	Desc *string
 	Age  *uint32
-	// Self referencing.
+	// O2M same type
 	Parent      *User
+	Children    []*User
 	DateCreated *timestamppb.Timestamp
 }
 
@@ -244,23 +259,24 @@ func (b0 User_builder) Build() *User {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Id != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 8)
 		x.xxx_hidden_Id = b.Id
 	}
 	if b.Name != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 8)
 		x.xxx_hidden_Name = b.Name
 	}
 	x.xxx_hidden_Labels = b.Labels
 	if b.Desc != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 8)
 		x.xxx_hidden_Desc = b.Desc
 	}
 	if b.Age != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 8)
 		x.xxx_hidden_Age = *b.Age
 	}
 	x.xxx_hidden_Parent = b.Parent
+	x.xxx_hidden_Children = &b.Children
 	x.xxx_hidden_DateCreated = b.DateCreated
 	return m0
 }
@@ -269,14 +285,16 @@ var File_library_user_proto protoreflect.FileDescriptor
 
 const file_library_user_proto_rawDesc = "" +
 	"\n" +
-	"\x12library/user.proto\x12\alibrary\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\torm.proto\"\xc4\x02\n" +
+	"\x12library/user.proto\x12\alibrary\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\torm.proto\"\x83\x03\n" +
 	"\x04User\x12\x1b\n" +
 	"\x02id\x18\x01 \x01(\fB\v\xea\x82\x16\a\x10@(\x01\x82\x01\x00R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x121\n" +
 	"\x06labels\x18\x05 \x03(\v2\x19.library.User.LabelsEntryR\x06labels\x12\x1a\n" +
 	"\x04desc\x18\x03 \x01(\tB\x06\xea\x82\x16\x02\b\x01R\x04desc\x12\x10\n" +
-	"\x03age\x18\x04 \x01(\rR\x03age\x12%\n" +
-	"\x06parent\x18\x06 \x01(\v2\r.library.UserR\x06parent\x12H\n" +
+	"\x03age\x18\x04 \x01(\rR\x03age\x129\n" +
+	"\x06parent\x18\x06 \x01(\v2\r.library.UserB\x12\xf2\x82\x16\x0e\x1a\f\n" +
+	"\bchildren\x10\aR\x06parent\x12)\n" +
+	"\bchildren\x18\a \x03(\v2\r.library.UserR\bchildren\x12H\n" +
 	"\fdate_created\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampB\t\xea\x82\x16\x05@\x01\x82\x01\x00R\vdateCreated\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
@@ -291,12 +309,13 @@ var file_library_user_proto_goTypes = []any{
 var file_library_user_proto_depIdxs = []int32{
 	1, // 0: library.User.labels:type_name -> library.User.LabelsEntry
 	0, // 1: library.User.parent:type_name -> library.User
-	2, // 2: library.User.date_created:type_name -> google.protobuf.Timestamp
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	0, // 2: library.User.children:type_name -> library.User
+	2, // 3: library.User.date_created:type_name -> google.protobuf.Timestamp
+	4, // [4:4] is the sub-list for method output_type
+	4, // [4:4] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_library_user_proto_init() }
