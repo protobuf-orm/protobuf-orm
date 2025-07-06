@@ -7,6 +7,7 @@ import (
 	"iter"
 	"slices"
 
+	"github.com/protobuf-orm/protobuf-orm/internal/iters"
 	"github.com/protobuf-orm/protobuf-orm/ormpb"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -92,7 +93,7 @@ func parseEntity(
 
 		back_ref := edge.opts.GetFrom()
 		if err := (func() error {
-			prop, ok := find(edge.target.Props(), func(v Prop) bool {
+			prop, ok := iters.Find(edge.target.Props(), func(v Prop) bool {
 				return v.Number() == protoreflect.FieldNumber(back_ref.GetNumber())
 			})
 			if !ok {
@@ -102,9 +103,19 @@ func parseEntity(
 				return fmt.Errorf("name of back reference different from the one specified: %q!=%q", back_ref.GetName(), name)
 			}
 
-			inverse, ok := prop.(Edge)
+			inverse, ok := prop.(*protoEdge)
 			if !ok {
 				return fmt.Errorf("back reference is not an edge: %s", prop.FullName())
+			}
+
+			if inverse.IsUnique() && edge.source.Cardinality() == protoreflect.Repeated {
+				// Back reference is marked as unique but target has repeated cardinality.
+				return fmt.Errorf("back reference is unique edge so it cannot have repeated cardinality")
+			}
+			if inverse.source.Cardinality() != protoreflect.Repeated && edge.source.Cardinality() != protoreflect.Repeated {
+				// O2O relation.
+				inverse.opts.SetUnique(true)
+				edge.opts.SetUnique(true)
 			}
 
 			edge.inverse = inverse

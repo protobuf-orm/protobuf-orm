@@ -1,0 +1,19 @@
+edition = "2023";
+
+package library;
+
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/library";
+
+message O2mParentMarkedUnique {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  O2mParentMarkedUnique parent = 10 [(orm.edge) = {unique: true}];
+  repeated O2mParentMarkedUnique children = 11 [(orm.edge) = {
+    from: {
+      name: "parent"
+      number: 10
+    }
+  }];
+}

@@ -270,13 +270,13 @@ func (x *User) ClearDateCreated() {
 type User_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Explicit field definition.
+	// Explicitly typed.
 	Id []byte
 	// Unique constraint.
 	Alias *string
 	// Number is out of order.
 	Labels map[string]string
-	// Implicit field definition.
+	// Implicitly typed.
 	Name *string
 	Desc *string
 	// Disable mapping.
@@ -322,18 +322,20 @@ var File_library_user_proto protoreflect.FileDescriptor
 
 const file_library_user_proto_rawDesc = "" +
 	"\n" +
-	"\x12library/user.proto\x12\alibrary\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\torm.proto\"\xe7\x03\n" +
+	"\x12library/user.proto\x12\alibrary\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\torm.proto\"\xe5\x03\n" +
 	"\x04User\x12\x1b\n" +
 	"\x02id\x18\x01 \x01(\fB\v\xea\x82\x16\a\x10@(\x01\x82\x01\x00R\x02id\x12\x1f\n" +
 	"\x05alias\x18\x04 \x01(\tB\t\xea\x82\x16\x050\x01\x82\x01\x00R\x05alias\x12:\n" +
 	"\x06labels\x18\a \x03(\v2\x19.library.User.LabelsEntryB\a\xea\x82\x16\x03\x82\x01\x00R\x06labels\x12\x12\n" +
 	"\x04name\x18\x05 \x01(\tR\x04name\x12\x1b\n" +
 	"\x04desc\x18\x06 \x01(\tB\a\xea\x82\x16\x03\x82\x01\x00R\x04desc\x12\"\n" +
-	"\bmetadata\x18\b \x01(\tB\x06\xea\x82\x16\x02\b\x01R\bmetadata\x129\n" +
+	"\bmetadata\x18\b \x01(\tB\x06\xea\x82\x16\x02\b\x01R\bmetadata\x12%\n" +
 	"\x06parent\x18\n" +
-	" \x01(\v2\r.library.UserB\x12\xf2\x82\x16\x0e\x1a\f\n" +
-	"\bchildren\x10\vR\x06parent\x12)\n" +
-	"\bchildren\x18\v \x03(\v2\r.library.UserR\bchildren\x12H\n" +
+	" \x01(\v2\r.library.UserR\x06parent\x12;\n" +
+	"\bchildren\x18\v \x03(\v2\r.library.UserB\x10\xf2\x82\x16\f\x1a\n" +
+	"\n" +
+	"\x06parent\x10\n" +
+	"R\bchildren\x12H\n" +
 	"\fdate_created\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampB\t\xea\x82\x16\x05@\x01\x82\x01\x00R\vdateCreated\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +

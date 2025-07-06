@@ -15,3 +15,15 @@ type protoField struct {
 func (f *protoField) Type() ormpb.Type {
 	return f.opts.GetType()
 }
+
+func (f *protoField) IsUnique() bool {
+	return f.opts.GetUnique()
+}
+
+func (f *protoField) IsNullable() bool {
+	return f.opts.GetNullable()
+}
+
+func (f *protoField) IsImmutable() bool {
+	return f.opts.GetImmutable()
+}

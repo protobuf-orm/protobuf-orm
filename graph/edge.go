@@ -31,6 +31,18 @@ type protoEdge struct {
 	inverse Edge
 }
 
+func (f *protoEdge) IsUnique() bool {
+	return f.opts.GetUnique()
+}
+
+func (f *protoEdge) IsNullable() bool {
+	return f.opts.GetNullable()
+}
+
+func (f *protoEdge) IsImmutable() bool {
+	return f.opts.GetImmutable()
+}
+
 func (e *protoEdge) Target() Entity {
 	return e.target
 }

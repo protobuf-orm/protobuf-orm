@@ -29,13 +29,13 @@ message User {
   string metadata = 8 [(orm.field) = {disabled: true}];
 
   // O2M same type
-  User parent = 10 [(orm.edge) = {
+  User parent = 10;
+  repeated User children = 11 [(orm.edge) = {
     from: {
-      name: "children"
-      number: 11
+      name: "parent"
+      number: 10
     }
   }];
-  repeated User children = 11;
 
   google.protobuf.Timestamp date_created = 15 [(orm.field) = {
     immutable: true

@@ -18,6 +18,10 @@ type Prop interface {
 
 	FullName() protoreflect.FullName
 	Number() protoreflect.FieldNumber
+
+	IsUnique() bool
+	IsNullable() bool
+	IsImmutable() bool
 }
 
 type protoProp struct {
@@ -92,6 +96,9 @@ func parseProp(ctx context.Context, g *Graph, e *protoEntity, mf protoreflect.Fi
 		// TODO:
 		// target = parseEntity(...)
 		panic("not implemented")
+	}
+	if mf.Cardinality() == protoreflect.Repeated && oe.GetUnique() {
+		return nil, fmt.Errorf("edge with repeated cardinality cannot be unique")
 	}
 
 	return &protoEdge{

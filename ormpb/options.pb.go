@@ -402,6 +402,7 @@ type EdgeOptions struct {
 	xxx_hidden_Disabled    bool                   `protobuf:"varint,1,opt,name=disabled"`
 	xxx_hidden_Bind        *Ref                   `protobuf:"bytes,2,opt,name=bind"`
 	xxx_hidden_From        *Ref                   `protobuf:"bytes,3,opt,name=from"`
+	xxx_hidden_Unique      bool                   `protobuf:"varint,6,opt,name=unique"`
 	xxx_hidden_Nullable    bool                   `protobuf:"varint,7,opt,name=nullable"`
 	xxx_hidden_Immutable   bool                   `protobuf:"varint,8,opt,name=immutable"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
@@ -456,6 +457,13 @@ func (x *EdgeOptions) GetFrom() *Ref {
 	return nil
 }
 
+func (x *EdgeOptions) GetUnique() bool {
+	if x != nil {
+		return x.xxx_hidden_Unique
+	}
+	return false
+}
+
 func (x *EdgeOptions) GetNullable() bool {
 	if x != nil {
 		return x.xxx_hidden_Nullable
@@ -472,7 +480,7 @@ func (x *EdgeOptions) GetImmutable() bool {
 
 func (x *EdgeOptions) SetDisabled(v bool) {
 	x.xxx_hidden_Disabled = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 5)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 6)
 }
 
 func (x *EdgeOptions) SetBind(v *Ref) {
@@ -483,14 +491,19 @@ func (x *EdgeOptions) SetFrom(v *Ref) {
 	x.xxx_hidden_From = v
 }
 
+func (x *EdgeOptions) SetUnique(v bool) {
+	x.xxx_hidden_Unique = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 6)
+}
+
 func (x *EdgeOptions) SetNullable(v bool) {
 	x.xxx_hidden_Nullable = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 5)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 6)
 }
 
 func (x *EdgeOptions) SetImmutable(v bool) {
 	x.xxx_hidden_Immutable = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 5)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 6)
 }
 
 func (x *EdgeOptions) HasDisabled() bool {
@@ -514,18 +527,25 @@ func (x *EdgeOptions) HasFrom() bool {
 	return x.xxx_hidden_From != nil
 }
 
-func (x *EdgeOptions) HasNullable() bool {
+func (x *EdgeOptions) HasUnique() bool {
 	if x == nil {
 		return false
 	}
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 3)
 }
 
-func (x *EdgeOptions) HasImmutable() bool {
+func (x *EdgeOptions) HasNullable() bool {
 	if x == nil {
 		return false
 	}
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 4)
+}
+
+func (x *EdgeOptions) HasImmutable() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 5)
 }
 
 func (x *EdgeOptions) ClearDisabled() {
@@ -541,13 +561,18 @@ func (x *EdgeOptions) ClearFrom() {
 	x.xxx_hidden_From = nil
 }
 
-func (x *EdgeOptions) ClearNullable() {
+func (x *EdgeOptions) ClearUnique() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 3)
+	x.xxx_hidden_Unique = false
+}
+
+func (x *EdgeOptions) ClearNullable() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 4)
 	x.xxx_hidden_Nullable = false
 }
 
 func (x *EdgeOptions) ClearImmutable() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 4)
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 5)
 	x.xxx_hidden_Immutable = false
 }
 
@@ -557,6 +582,7 @@ type EdgeOptions_builder struct {
 	Disabled  *bool
 	Bind      *Ref
 	From      *Ref
+	Unique    *bool
 	Nullable  *bool
 	Immutable *bool
 }
@@ -566,17 +592,21 @@ func (b0 EdgeOptions_builder) Build() *EdgeOptions {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Disabled != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 5)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 6)
 		x.xxx_hidden_Disabled = *b.Disabled
 	}
 	x.xxx_hidden_Bind = b.Bind
 	x.xxx_hidden_From = b.From
+	if b.Unique != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 6)
+		x.xxx_hidden_Unique = *b.Unique
+	}
 	if b.Nullable != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 5)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 6)
 		x.xxx_hidden_Nullable = *b.Nullable
 	}
 	if b.Immutable != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 5)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 6)
 		x.xxx_hidden_Immutable = *b.Immutable
 	}
 	return m0
@@ -599,11 +629,12 @@ const file_orm_options_proto_rawDesc = "" +
 	"\x06unique\x18\x06 \x01(\bR\x06unique\x12\x1a\n" +
 	"\bnullable\x18\a \x01(\bR\bnullable\x12\x1c\n" +
 	"\timmutable\x18\b \x01(\bR\timmutable\x12\x18\n" +
-	"\adefault\x18\x10 \x01(\tR\adefault\"\x9f\x01\n" +
+	"\adefault\x18\x10 \x01(\tR\adefault\"\xb7\x01\n" +
 	"\vEdgeOptions\x12\x1a\n" +
 	"\bdisabled\x18\x01 \x01(\bR\bdisabled\x12\x1c\n" +
 	"\x04bind\x18\x02 \x01(\v2\b.orm.RefR\x04bind\x12\x1c\n" +
-	"\x04from\x18\x03 \x01(\v2\b.orm.RefR\x04from\x12\x1a\n" +
+	"\x04from\x18\x03 \x01(\v2\b.orm.RefR\x04from\x12\x16\n" +
+	"\x06unique\x18\x06 \x01(\bR\x06unique\x12\x1a\n" +
 	"\bnullable\x18\a \x01(\bR\bnullable\x12\x1c\n" +
 	"\timmutable\x18\b \x01(\bR\timmutableB,Z*github.com/protobuf-orm/protobuf-orm/ormpbb\beditionsp\xe8\a"
 

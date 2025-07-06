@@ -1,6 +1,7 @@
 package graph_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/protobuf-orm/protobuf-orm/graph"
@@ -8,12 +9,18 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func WithEntity(d protoreflect.FileDescriptor, name string, f func(x *require.Assertions, g *graph.Graph, entity graph.Entity)) func(t *testing.T) {
+func WithGraph(f func(ctx context.Context, x *require.Assertions, g *graph.Graph)) func(t *testing.T) {
 	return func(t *testing.T) {
 		x := require.New(t)
-
 		g := graph.NewGraph()
-		err := graph.Parse(t.Context(), g, d)
+
+		f(t.Context(), x, g)
+	}
+}
+
+func WithEntity(d protoreflect.FileDescriptor, name string, f func(x *require.Assertions, g *graph.Graph, entity graph.Entity)) func(t *testing.T) {
+	return WithGraph(func(ctx context.Context, x *require.Assertions, g *graph.Graph) {
+		err := graph.Parse(ctx, g, d)
 		x.NoError(err)
 
 		m := d.Messages().ByName(protoreflect.Name(name))
@@ -23,5 +30,5 @@ func WithEntity(d protoreflect.FileDescriptor, name string, f func(x *require.As
 		x.True(ok)
 
 		f(x, g, entity)
-	}
+	})
 }

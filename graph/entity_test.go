@@ -76,15 +76,15 @@ func TestEntityProps(t *testing.T) {
 
 	t.Run("O2M same type parent", withUserEdge("parent", func(x *require.Assertions, g *graph.Graph, entity graph.Entity, v graph.Edge) {
 		x.Same(entity, v.Target())
-		x.Nil(v.Reverse())
-		x.NotNil(v.Inverse())
-		x.Equal(entity.FullName().Append("children"), v.Inverse().FullName())
+		x.NotNil(v.Reverse())
+		x.Nil(v.Inverse())
+		x.Equal(entity.FullName().Append("children"), v.Reverse().FullName())
 	}))
 	t.Run("O2M same type children", withUserEdge("children", func(x *require.Assertions, g *graph.Graph, entity graph.Entity, v graph.Edge) {
 		x.Same(entity, v.Target())
-		x.NotNil(v.Reverse())
-		x.Nil(v.Inverse())
-		x.Equal(entity.FullName().Append("parent"), v.Reverse().FullName())
+		x.Nil(v.Reverse())
+		x.NotNil(v.Inverse())
+		x.Equal(entity.FullName().Append("parent"), v.Inverse().FullName())
 	}))
 	t.Run("numbers", WithEntity(library.File_library_user_proto, "User", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
 		vs := slices.Collect(entity.Props())
