@@ -18,6 +18,7 @@ type Entity interface {
 	Props() iter.Seq[Prop]
 	Fields() iter.Seq[Field]
 	Edges() iter.Seq[Edge]
+	Indexes() iter.Seq[Index]
 }
 
 // Entity parsed from the proto message.
@@ -26,8 +27,9 @@ type protoEntity struct {
 	source protoreflect.MessageDescriptor
 
 	// Proto field which represents a key.
-	key   *protoField
-	props []Prop
+	key     *protoField
+	props   []Prop
+	indexes []Index
 }
 
 func parseEntity(
@@ -40,7 +42,7 @@ func parseEntity(
 		source: m,
 	}
 
-	// Prevents errors from
+	// Forward declaration for
 	// - self-reference
 	// - circular reference
 	g.Entities[m.FullName()] = v
@@ -48,6 +50,8 @@ func parseEntity(
 	// TODO: fill rpcs and indexes
 
 	errs := []error{}
+
+	// Paras props.
 	for i := 0; i < m.Fields().Len(); i++ {
 		mf := m.Fields().Get(i)
 		prop, err := parseProp(ctx, g, v, mf)
@@ -66,6 +70,19 @@ func parseEntity(
 		return nil, errors.Join(errs...)
 	}
 
+	// Parse indexes.
+	for i, index_opt := range opts.GetIndexes() {
+		index, err := parseIndex(ctx, v, index_opt)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("[%d(%s)]%w", i, index_opt.GetName(), err))
+		}
+
+		v.indexes = append(v.indexes, index)
+	}
+	if len(errs) > 0 {
+		return nil, fmt.Errorf(".{indexes}%w", errors.Join(errs...))
+	}
+
 	// Find inverse for the edges.
 	for edge_ := range v.Edges() {
 		edge := edge_.(*protoEdge)
@@ -73,16 +90,16 @@ func parseEntity(
 			continue
 		}
 
-		from := edge.opts.GetFrom()
+		back_ref := edge.opts.GetFrom()
 		if err := (func() error {
 			prop, ok := find(edge.target.Props(), func(v Prop) bool {
-				return v.Number() == protoreflect.FieldNumber(from.GetNumber())
+				return v.Number() == protoreflect.FieldNumber(back_ref.GetNumber())
 			})
 			if !ok {
-				return fmt.Errorf("back reference not found on the target entity: %s[%d]", edge.target.FullName(), from.GetNumber())
+				return fmt.Errorf("back reference not found on the target entity: %s[%d]", edge.target.FullName(), back_ref.GetNumber())
 			}
-			if name := prop.FullName().Name(); name != protoreflect.Name(from.GetName()) {
-				return fmt.Errorf("name of back reference different from the one specified: %q!=%q", from.GetName(), name)
+			if name := string(prop.FullName().Name()); name != back_ref.GetName() {
+				return fmt.Errorf("name of back reference different from the one specified: %q!=%q", back_ref.GetName(), name)
 			}
 
 			inverse, ok := prop.(Edge)
@@ -137,4 +154,8 @@ func (e *protoEntity) Edges() iter.Seq[Edge] {
 			}
 		}
 	}
+}
+
+func (e *protoEntity) Indexes() iter.Seq[Index] {
+	return slices.Values(e.indexes)
 }

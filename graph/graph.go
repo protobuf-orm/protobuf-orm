@@ -48,7 +48,7 @@ func Parse(ctx context.Context, g *Graph, f protoreflect.FileDescriptor) error {
 
 		v, err := parseEntity(ctx, g_, m, om)
 		if err != nil {
-			errs = append(errs, fmt.Errorf("%s: %w", m.FullName(), err))
+			errs = append(errs, fmt.Errorf("%s.%w", m.FullName(), err))
 			continue
 		}
 

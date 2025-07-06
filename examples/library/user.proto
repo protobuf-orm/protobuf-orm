@@ -8,31 +8,56 @@ import "orm.proto";
 option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/library";
 
 message User {
-  // Explicit field definition.
+  // Explicitly typed.
   bytes id = 1 [(orm.field) = {
     type: TYPE_UUID
     key: true
     default: ""
   }];
-  // Implicit field definition.
-  string name = 2;
-  // Reference is out of order.
-  map<string, string> labels = 5;
+  // Unique constraint.
+  string alias = 4 [(orm.field) = {
+    unique: true
+    default: ""
+  }];
+  // Number is out of order.
+  map<string, string> labels = 7 [(orm.field) = {default: ""}];
+  // Implicitly typed.
+  string name = 5;
+  string desc = 6 [(orm.field) = {default: ""}];
+
   // Disable mapping.
-  string desc = 3 [(orm.field) = {disabled: true}];
-  uint32 age = 4;
+  string metadata = 8 [(orm.field) = {disabled: true}];
 
   // O2M same type
-  User parent = 6 [(orm.edge) = {
+  User parent = 10 [(orm.edge) = {
     from: {
       name: "children"
-      number: 7
+      number: 11
     }
   }];
-  repeated User children = 7;
+  repeated User children = 11;
 
   google.protobuf.Timestamp date_created = 15 [(orm.field) = {
     immutable: true
     default: ""
   }];
+
+  option (orm.message) = {
+    indexes: [
+      {
+        name: "child"
+        refs: [
+          {
+            name: "parent"
+            number: 10
+          },
+          {
+            name: "name"
+            number: 5
+          }
+        ]
+        unique: true
+      }
+    ]
+  };
 }

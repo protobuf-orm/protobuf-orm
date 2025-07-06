@@ -144,7 +144,6 @@ type FieldOptions struct {
 	xxx_hidden_Unique      bool                   `protobuf:"varint,6,opt,name=unique"`
 	xxx_hidden_Nullable    bool                   `protobuf:"varint,7,opt,name=nullable"`
 	xxx_hidden_Immutable   bool                   `protobuf:"varint,8,opt,name=immutable"`
-	xxx_hidden_Supplied    bool                   `protobuf:"varint,9,opt,name=supplied"`
 	xxx_hidden_Default     *string                `protobuf:"bytes,16,opt,name=default"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
@@ -221,13 +220,6 @@ func (x *FieldOptions) GetImmutable() bool {
 	return false
 }
 
-func (x *FieldOptions) GetSupplied() bool {
-	if x != nil {
-		return x.xxx_hidden_Supplied
-	}
-	return false
-}
-
 func (x *FieldOptions) GetDefault() string {
 	if x != nil {
 		if x.xxx_hidden_Default != nil {
@@ -240,42 +232,37 @@ func (x *FieldOptions) GetDefault() string {
 
 func (x *FieldOptions) SetDisabled(v bool) {
 	x.xxx_hidden_Disabled = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 8)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 7)
 }
 
 func (x *FieldOptions) SetType(v Type) {
 	x.xxx_hidden_Type = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 8)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 7)
 }
 
 func (x *FieldOptions) SetKey(v bool) {
 	x.xxx_hidden_Key = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 8)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 7)
 }
 
 func (x *FieldOptions) SetUnique(v bool) {
 	x.xxx_hidden_Unique = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 8)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 7)
 }
 
 func (x *FieldOptions) SetNullable(v bool) {
 	x.xxx_hidden_Nullable = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 8)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 7)
 }
 
 func (x *FieldOptions) SetImmutable(v bool) {
 	x.xxx_hidden_Immutable = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 8)
-}
-
-func (x *FieldOptions) SetSupplied(v bool) {
-	x.xxx_hidden_Supplied = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 6, 8)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 7)
 }
 
 func (x *FieldOptions) SetDefault(v string) {
 	x.xxx_hidden_Default = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 7, 8)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 6, 7)
 }
 
 func (x *FieldOptions) HasDisabled() bool {
@@ -320,18 +307,11 @@ func (x *FieldOptions) HasImmutable() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 5)
 }
 
-func (x *FieldOptions) HasSupplied() bool {
-	if x == nil {
-		return false
-	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 6)
-}
-
 func (x *FieldOptions) HasDefault() bool {
 	if x == nil {
 		return false
 	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 7)
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 6)
 }
 
 func (x *FieldOptions) ClearDisabled() {
@@ -364,13 +344,8 @@ func (x *FieldOptions) ClearImmutable() {
 	x.xxx_hidden_Immutable = false
 }
 
-func (x *FieldOptions) ClearSupplied() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 6)
-	x.xxx_hidden_Supplied = false
-}
-
 func (x *FieldOptions) ClearDefault() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 7)
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 6)
 	x.xxx_hidden_Default = nil
 }
 
@@ -383,12 +358,6 @@ type FieldOptions_builder struct {
 	Unique    *bool
 	Nullable  *bool
 	Immutable *bool
-	// Mark a field as optional for AddRequest message.
-	// This is useful when a field is unique and
-	// therefore cannot have a default value, but the
-	// server supplies (or generates) the value, so you
-	// want to make the field optional for the user.
-	Supplied *bool
 	// TODO: Any?
 	Default *string
 }
@@ -398,35 +367,31 @@ func (b0 FieldOptions_builder) Build() *FieldOptions {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Disabled != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 8)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 7)
 		x.xxx_hidden_Disabled = *b.Disabled
 	}
 	if b.Type != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 8)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 7)
 		x.xxx_hidden_Type = *b.Type
 	}
 	if b.Key != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 8)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 7)
 		x.xxx_hidden_Key = *b.Key
 	}
 	if b.Unique != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 8)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 7)
 		x.xxx_hidden_Unique = *b.Unique
 	}
 	if b.Nullable != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 8)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 7)
 		x.xxx_hidden_Nullable = *b.Nullable
 	}
 	if b.Immutable != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 8)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 7)
 		x.xxx_hidden_Immutable = *b.Immutable
 	}
-	if b.Supplied != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 6, 8)
-		x.xxx_hidden_Supplied = *b.Supplied
-	}
 	if b.Default != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 7, 8)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 6, 7)
 		x.xxx_hidden_Default = b.Default
 	}
 	return m0
@@ -626,15 +591,14 @@ const file_orm_options_proto_rawDesc = "" +
 	"\bdisabled\x18\x01 \x01(\bR\bdisabled\x12!\n" +
 	"\x03rpc\x18\x02 \x01(\v2\x0f.orm.RpcOptionsR\x03rpc\x12$\n" +
 	"\aindexes\x18\x03 \x03(\v2\n" +
-	".orm.IndexR\aindexes\"\xe3\x01\n" +
+	".orm.IndexR\aindexes\"\xc7\x01\n" +
 	"\fFieldOptions\x12\x1a\n" +
 	"\bdisabled\x18\x01 \x01(\bR\bdisabled\x12\x1d\n" +
 	"\x04type\x18\x02 \x01(\x0e2\t.orm.TypeR\x04type\x12\x10\n" +
 	"\x03key\x18\x05 \x01(\bR\x03key\x12\x16\n" +
 	"\x06unique\x18\x06 \x01(\bR\x06unique\x12\x1a\n" +
 	"\bnullable\x18\a \x01(\bR\bnullable\x12\x1c\n" +
-	"\timmutable\x18\b \x01(\bR\timmutable\x12\x1a\n" +
-	"\bsupplied\x18\t \x01(\bR\bsupplied\x12\x18\n" +
+	"\timmutable\x18\b \x01(\bR\timmutable\x12\x18\n" +
 	"\adefault\x18\x10 \x01(\tR\adefault\"\x9f\x01\n" +
 	"\vEdgeOptions\x12\x1a\n" +
 	"\bdisabled\x18\x01 \x01(\bR\bdisabled\x12\x1c\n" +

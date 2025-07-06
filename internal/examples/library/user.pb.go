@@ -25,12 +25,13 @@ const (
 type User struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Id          []byte                 `protobuf:"bytes,1,opt,name=id"`
-	xxx_hidden_Name        *string                `protobuf:"bytes,2,opt,name=name"`
-	xxx_hidden_Labels      map[string]string      `protobuf:"bytes,5,rep,name=labels" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	xxx_hidden_Desc        *string                `protobuf:"bytes,3,opt,name=desc"`
-	xxx_hidden_Age         uint32                 `protobuf:"varint,4,opt,name=age"`
-	xxx_hidden_Parent      *User                  `protobuf:"bytes,6,opt,name=parent"`
-	xxx_hidden_Children    *[]*User               `protobuf:"bytes,7,rep,name=children"`
+	xxx_hidden_Alias       *string                `protobuf:"bytes,4,opt,name=alias"`
+	xxx_hidden_Labels      map[string]string      `protobuf:"bytes,7,rep,name=labels" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	xxx_hidden_Name        *string                `protobuf:"bytes,5,opt,name=name"`
+	xxx_hidden_Desc        *string                `protobuf:"bytes,6,opt,name=desc"`
+	xxx_hidden_Metadata    *string                `protobuf:"bytes,8,opt,name=metadata"`
+	xxx_hidden_Parent      *User                  `protobuf:"bytes,10,opt,name=parent"`
+	xxx_hidden_Children    *[]*User               `protobuf:"bytes,11,rep,name=children"`
 	xxx_hidden_DateCreated *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=date_created,json=dateCreated"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
@@ -70,10 +71,10 @@ func (x *User) GetId() []byte {
 	return nil
 }
 
-func (x *User) GetName() string {
+func (x *User) GetAlias() string {
 	if x != nil {
-		if x.xxx_hidden_Name != nil {
-			return *x.xxx_hidden_Name
+		if x.xxx_hidden_Alias != nil {
+			return *x.xxx_hidden_Alias
 		}
 		return ""
 	}
@@ -87,6 +88,16 @@ func (x *User) GetLabels() map[string]string {
 	return nil
 }
 
+func (x *User) GetName() string {
+	if x != nil {
+		if x.xxx_hidden_Name != nil {
+			return *x.xxx_hidden_Name
+		}
+		return ""
+	}
+	return ""
+}
+
 func (x *User) GetDesc() string {
 	if x != nil {
 		if x.xxx_hidden_Desc != nil {
@@ -97,11 +108,14 @@ func (x *User) GetDesc() string {
 	return ""
 }
 
-func (x *User) GetAge() uint32 {
+func (x *User) GetMetadata() string {
 	if x != nil {
-		return x.xxx_hidden_Age
+		if x.xxx_hidden_Metadata != nil {
+			return *x.xxx_hidden_Metadata
+		}
+		return ""
 	}
-	return 0
+	return ""
 }
 
 func (x *User) GetParent() *User {
@@ -132,26 +146,31 @@ func (x *User) SetId(v []byte) {
 		v = []byte{}
 	}
 	x.xxx_hidden_Id = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 8)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 9)
 }
 
-func (x *User) SetName(v string) {
-	x.xxx_hidden_Name = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 8)
+func (x *User) SetAlias(v string) {
+	x.xxx_hidden_Alias = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 9)
 }
 
 func (x *User) SetLabels(v map[string]string) {
 	x.xxx_hidden_Labels = v
 }
 
-func (x *User) SetDesc(v string) {
-	x.xxx_hidden_Desc = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 8)
+func (x *User) SetName(v string) {
+	x.xxx_hidden_Name = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 9)
 }
 
-func (x *User) SetAge(v uint32) {
-	x.xxx_hidden_Age = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 8)
+func (x *User) SetDesc(v string) {
+	x.xxx_hidden_Desc = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 9)
+}
+
+func (x *User) SetMetadata(v string) {
+	x.xxx_hidden_Metadata = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 9)
 }
 
 func (x *User) SetParent(v *User) {
@@ -173,25 +192,32 @@ func (x *User) HasId() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
 }
 
-func (x *User) HasName() bool {
+func (x *User) HasAlias() bool {
 	if x == nil {
 		return false
 	}
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
 }
 
-func (x *User) HasDesc() bool {
+func (x *User) HasName() bool {
 	if x == nil {
 		return false
 	}
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 3)
 }
 
-func (x *User) HasAge() bool {
+func (x *User) HasDesc() bool {
 	if x == nil {
 		return false
 	}
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 4)
+}
+
+func (x *User) HasMetadata() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 5)
 }
 
 func (x *User) HasParent() bool {
@@ -213,19 +239,24 @@ func (x *User) ClearId() {
 	x.xxx_hidden_Id = nil
 }
 
-func (x *User) ClearName() {
+func (x *User) ClearAlias() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_Alias = nil
+}
+
+func (x *User) ClearName() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 3)
 	x.xxx_hidden_Name = nil
 }
 
 func (x *User) ClearDesc() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 3)
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 4)
 	x.xxx_hidden_Desc = nil
 }
 
-func (x *User) ClearAge() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 4)
-	x.xxx_hidden_Age = 0
+func (x *User) ClearMetadata() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 5)
+	x.xxx_hidden_Metadata = nil
 }
 
 func (x *User) ClearParent() {
@@ -241,13 +272,15 @@ type User_builder struct {
 
 	// Explicit field definition.
 	Id []byte
+	// Unique constraint.
+	Alias *string
+	// Number is out of order.
+	Labels map[string]string
 	// Implicit field definition.
 	Name *string
-	// Reference is out of order.
-	Labels map[string]string
-	// Disable mapping.
 	Desc *string
-	Age  *uint32
+	// Disable mapping.
+	Metadata *string
 	// O2M same type
 	Parent      *User
 	Children    []*User
@@ -259,21 +292,25 @@ func (b0 User_builder) Build() *User {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Id != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 8)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 9)
 		x.xxx_hidden_Id = b.Id
 	}
-	if b.Name != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 8)
-		x.xxx_hidden_Name = b.Name
+	if b.Alias != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 9)
+		x.xxx_hidden_Alias = b.Alias
 	}
 	x.xxx_hidden_Labels = b.Labels
+	if b.Name != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 9)
+		x.xxx_hidden_Name = b.Name
+	}
 	if b.Desc != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 8)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 9)
 		x.xxx_hidden_Desc = b.Desc
 	}
-	if b.Age != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 8)
-		x.xxx_hidden_Age = *b.Age
+	if b.Metadata != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 9)
+		x.xxx_hidden_Metadata = b.Metadata
 	}
 	x.xxx_hidden_Parent = b.Parent
 	x.xxx_hidden_Children = &b.Children
@@ -285,20 +322,26 @@ var File_library_user_proto protoreflect.FileDescriptor
 
 const file_library_user_proto_rawDesc = "" +
 	"\n" +
-	"\x12library/user.proto\x12\alibrary\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\torm.proto\"\x83\x03\n" +
+	"\x12library/user.proto\x12\alibrary\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\torm.proto\"\xe7\x03\n" +
 	"\x04User\x12\x1b\n" +
-	"\x02id\x18\x01 \x01(\fB\v\xea\x82\x16\a\x10@(\x01\x82\x01\x00R\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x121\n" +
-	"\x06labels\x18\x05 \x03(\v2\x19.library.User.LabelsEntryR\x06labels\x12\x1a\n" +
-	"\x04desc\x18\x03 \x01(\tB\x06\xea\x82\x16\x02\b\x01R\x04desc\x12\x10\n" +
-	"\x03age\x18\x04 \x01(\rR\x03age\x129\n" +
-	"\x06parent\x18\x06 \x01(\v2\r.library.UserB\x12\xf2\x82\x16\x0e\x1a\f\n" +
-	"\bchildren\x10\aR\x06parent\x12)\n" +
-	"\bchildren\x18\a \x03(\v2\r.library.UserR\bchildren\x12H\n" +
+	"\x02id\x18\x01 \x01(\fB\v\xea\x82\x16\a\x10@(\x01\x82\x01\x00R\x02id\x12\x1f\n" +
+	"\x05alias\x18\x04 \x01(\tB\t\xea\x82\x16\x050\x01\x82\x01\x00R\x05alias\x12:\n" +
+	"\x06labels\x18\a \x03(\v2\x19.library.User.LabelsEntryB\a\xea\x82\x16\x03\x82\x01\x00R\x06labels\x12\x12\n" +
+	"\x04name\x18\x05 \x01(\tR\x04name\x12\x1b\n" +
+	"\x04desc\x18\x06 \x01(\tB\a\xea\x82\x16\x03\x82\x01\x00R\x04desc\x12\"\n" +
+	"\bmetadata\x18\b \x01(\tB\x06\xea\x82\x16\x02\b\x01R\bmetadata\x129\n" +
+	"\x06parent\x18\n" +
+	" \x01(\v2\r.library.UserB\x12\xf2\x82\x16\x0e\x1a\f\n" +
+	"\bchildren\x10\vR\x06parent\x12)\n" +
+	"\bchildren\x18\v \x03(\v2\r.library.UserR\bchildren\x12H\n" +
 	"\fdate_created\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampB\t\xea\x82\x16\x05@\x01\x82\x01\x00R\vdateCreated\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B@Z>github.com/protobuf-orm/protobuf-orm/internal/examples/libraryb\beditionsp\xe8\a"
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:%\xca\xfc\x15!\x1a\x1f\x12\x05child\x1a\n" +
+	"\n" +
+	"\x06parent\x10\n" +
+	"\x1a\b\n" +
+	"\x04name\x10\x050\x01B@Z>github.com/protobuf-orm/protobuf-orm/internal/examples/libraryb\beditionsp\xe8\a"
 
 var file_library_user_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_library_user_proto_goTypes = []any{
