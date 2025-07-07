@@ -81,8 +81,12 @@ func parseEntity(
 				f.FullName().Name(), f.Number(),
 			)
 		}
+		if f.opts.HasUnique() && !f.opts.GetUnique() {
+			return nil, fmt.Errorf(".%s: key must be unique", f.FullName().Name())
+		}
 
 		v.key = f
+		f.opts.SetUnique(true)
 	}
 	if v.key == nil {
 		return nil, fmt.Errorf(": no key is defined")

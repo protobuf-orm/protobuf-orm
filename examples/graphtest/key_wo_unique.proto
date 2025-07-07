@@ -1,0 +1,15 @@
+edition = "2023";
+
+package graphtest;
+
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
+
+message KeyWoUnique {
+  // Key implies a unique so even if no unique is specified,
+  // key is evaluated as unique.
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  option (orm.message) = {};
+}

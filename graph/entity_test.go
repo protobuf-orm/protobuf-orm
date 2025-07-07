@@ -33,6 +33,14 @@ func TestEntityEnable(t *testing.T) {
 }
 
 func TestEntityValidity(t *testing.T) {
+	t.Run("key is unique", WithEntity(graphtest.File_graphtest_key_wo_unique_proto, "KeyWoUnique", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
+		x.True(entity.Key().IsUnique())
+	}))
+	t.Run("key cannot be set as no unique", WithGraph(func(ctx context.Context, x *require.Assertions, g *graph.Graph) {
+		err := graph.Parse(ctx, g, graphtest.File_graphtest_key_no_unique_proto)
+		x.Error(err)
+		x.ErrorContains(err, "key must be unique")
+	}))
 	t.Run("key is not defined", WithGraph(func(ctx context.Context, x *require.Assertions, g *graph.Graph) {
 		err := graph.Parse(ctx, g, graphtest.File_graphtest_key_no_proto)
 		x.Error(err)
