@@ -17,4 +17,6 @@ message O2mChildrenMarkedUnique {
     }
     unique: true
   }];
+
+  option (orm.message) = {};
 }

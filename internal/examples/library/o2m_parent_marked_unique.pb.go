@@ -141,7 +141,7 @@ var File_library_o2m_parent_marked_unique_proto protoreflect.FileDescriptor
 
 const file_library_o2m_parent_marked_unique_proto_rawDesc = "" +
 	"\n" +
-	"&library/o2m_parent_marked_unique.proto\x12\alibrary\x1a\torm.proto\"\xbd\x01\n" +
+	"&library/o2m_parent_marked_unique.proto\x12\alibrary\x1a\torm.proto\"\xc3\x01\n" +
 	"\x15O2mParentMarkedUnique\x12\x16\n" +
 	"\x02id\x18\x01 \x01(\x05B\x06\xea\x82\x16\x02(\x01R\x02id\x12>\n" +
 	"\x06parent\x18\n" +
@@ -149,7 +149,7 @@ const file_library_o2m_parent_marked_unique_proto_rawDesc = "" +
 	"\bchildren\x18\v \x03(\v2\x1e.library.O2mParentMarkedUniqueB\x10\xf2\x82\x16\f\x1a\n" +
 	"\n" +
 	"\x06parent\x10\n" +
-	"R\bchildrenB@Z>github.com/protobuf-orm/protobuf-orm/internal/examples/libraryb\beditionsp\xe8\a"
+	"R\bchildren:\x04\xca\xfc\x15\x00B@Z>github.com/protobuf-orm/protobuf-orm/internal/examples/libraryb\beditionsp\xe8\a"
 
 var file_library_o2m_parent_marked_unique_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_library_o2m_parent_marked_unique_proto_goTypes = []any{

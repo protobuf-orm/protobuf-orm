@@ -1,6 +1,7 @@
 package graph_test
 
 import (
+	"context"
 	"fmt"
 	"slices"
 	"testing"
@@ -11,6 +12,39 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
+
+func TestEntityEnable(t *testing.T) {
+	t.Run("enabled with option", WithGraph(func(ctx context.Context, x *require.Assertions, g *graph.Graph) {
+		err := graph.Parse(ctx, g, library.File_library_entity_proto)
+		x.NoError(err)
+		x.Contains(g.Entities, library.File_library_entity_proto.FullName().Append("EntityEnabled"))
+	}))
+	t.Run("disabled since no option", WithGraph(func(ctx context.Context, x *require.Assertions, g *graph.Graph) {
+		err := graph.Parse(ctx, g, library.File_library_entity_proto)
+		x.NoError(err)
+		x.NotContains(g.Entities, library.File_library_entity_proto.FullName().Append("EntityDisabled"))
+	}))
+	t.Run("disabled with option", WithGraph(func(ctx context.Context, x *require.Assertions, g *graph.Graph) {
+		err := graph.Parse(ctx, g, library.File_library_entity_proto)
+		x.NoError(err)
+		x.NotContains(g.Entities, library.File_library_entity_proto.FullName().Append("EntityDisabledExplicit"))
+	}))
+}
+
+func TestEntityValidity(t *testing.T) {
+	t.Run("key is not defined", WithGraph(func(ctx context.Context, x *require.Assertions, g *graph.Graph) {
+		err := graph.Parse(ctx, g, library.File_library_key_no_proto)
+		x.Error(err)
+		x.ErrorContains(err, "no key is defined")
+	}))
+	t.Run("two or more keys are defined", WithGraph(func(ctx context.Context, x *require.Assertions, g *graph.Graph) {
+		err := graph.Parse(ctx, g, library.File_library_key_many_proto)
+		x.Error(err)
+		x.ErrorContains(err, "there can be only one key")
+		x.ErrorContains(err, "id:1")
+		x.ErrorContains(err, "alias:2")
+	}))
+}
 
 func TestEntityProps(t *testing.T) {
 	withUserEntity := func(f func(x *require.Assertions, g *graph.Graph, entity graph.Entity)) func(t *testing.T) {

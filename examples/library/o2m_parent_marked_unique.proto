@@ -16,4 +16,6 @@ message O2mParentMarkedUnique {
       number: 10
     }
   }];
+
+  option (orm.message) = {};
 }

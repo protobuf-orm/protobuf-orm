@@ -52,7 +52,7 @@ func parseEntity(
 
 	errs := []error{}
 
-	// Paras props.
+	// Parse props.
 	for i := 0; i < m.Fields().Len(); i++ {
 		mf := m.Fields().Get(i)
 		prop, err := parseProp(ctx, g, v, mf)
@@ -69,6 +69,23 @@ func parseEntity(
 	}
 	if len(errs) > 0 {
 		return nil, errors.Join(errs...)
+	}
+	for field := range v.Fields() {
+		f := field.(*protoField)
+		if !f.opts.GetKey() {
+			continue
+		}
+		if v.key != nil {
+			return nil, fmt.Errorf(": there can be only one key, found %s:%d and %s:%d",
+				v.key.FullName().Name(), v.key.Number(),
+				f.FullName().Name(), f.Number(),
+			)
+		}
+
+		v.key = f
+	}
+	if v.key == nil {
+		return nil, fmt.Errorf(": no key is defined")
 	}
 
 	// Parse indexes.

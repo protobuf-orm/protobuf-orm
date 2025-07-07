@@ -6,10 +6,9 @@ import "orm.proto";
 
 option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/library";
 
-message O2mRefMarkedUnique {
+message KeyMany {
   int32 id = 1 [(orm.field) = {key: true}];
-
-  repeated O2mRefMarkedUnique children = 11 [(orm.edge) = {unique: true}];
+  string alias = 2 [(orm.field) = {key: true}];
 
   option (orm.message) = {};
 }

@@ -40,7 +40,7 @@ func Parse(ctx context.Context, g *Graph, f protoreflect.FileDescriptor) error {
 		m := f.Messages().Get(i)
 		om := proto.GetExtension(m.Options(), ormpb.E_Message).(*ormpb.MessageOptions)
 		if om == nil {
-			om = &ormpb.MessageOptions{}
+			continue
 		}
 		if om.GetDisabled() {
 			continue

@@ -1,0 +1,28 @@
+edition = "2023";
+
+package library;
+
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/library";
+
+message EntityEnabled {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // Entity is enabled if `orm.message` is defined.
+  option (orm.message) = {};
+}
+
+message EntityDisabled {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // No `orm.message` so this message is disabled.
+}
+
+message EntityDisabledExplicit {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // Although `orm.message` is defined, it is explicitly marked as `disabled`,
+  // so the message is not enabled.
+  option (orm.message) = {disabled: true};
+}
