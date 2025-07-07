@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.36.6
 // 	protoc        (unknown)
-// source: library/key_many.proto
+// source: graphtest/key_many.proto
 
-package library
+package graphtest
 
 import (
 	_ "github.com/protobuf-orm/protobuf-orm/ormpb"
@@ -33,7 +33,7 @@ type KeyMany struct {
 
 func (x *KeyMany) Reset() {
 	*x = KeyMany{}
-	mi := &file_library_key_many_proto_msgTypes[0]
+	mi := &file_graphtest_key_many_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -45,7 +45,7 @@ func (x *KeyMany) String() string {
 func (*KeyMany) ProtoMessage() {}
 
 func (x *KeyMany) ProtoReflect() protoreflect.Message {
-	mi := &file_library_key_many_proto_msgTypes[0]
+	mi := &file_graphtest_key_many_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -129,20 +129,20 @@ func (b0 KeyMany_builder) Build() *KeyMany {
 	return m0
 }
 
-var File_library_key_many_proto protoreflect.FileDescriptor
+var File_graphtest_key_many_proto protoreflect.FileDescriptor
 
-const file_library_key_many_proto_rawDesc = "" +
+const file_graphtest_key_many_proto_rawDesc = "" +
 	"\n" +
-	"\x16library/key_many.proto\x12\alibrary\x1a\torm.proto\"E\n" +
+	"\x18graphtest/key_many.proto\x12\tgraphtest\x1a\torm.proto\"E\n" +
 	"\aKeyMany\x12\x16\n" +
 	"\x02id\x18\x01 \x01(\x05B\x06\xea\x82\x16\x02(\x01R\x02id\x12\x1c\n" +
-	"\x05alias\x18\x02 \x01(\tB\x06\xea\x82\x16\x02(\x01R\x05alias:\x04\xca\xfc\x15\x00B@Z>github.com/protobuf-orm/protobuf-orm/internal/examples/libraryb\beditionsp\xe8\a"
+	"\x05alias\x18\x02 \x01(\tB\x06\xea\x82\x16\x02(\x01R\x05alias:\x04\xca\xfc\x15\x00BBZ@github.com/protobuf-orm/protobuf-orm/internal/examples/graphtestb\beditionsp\xe8\a"
 
-var file_library_key_many_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_library_key_many_proto_goTypes = []any{
-	(*KeyMany)(nil), // 0: library.KeyMany
+var file_graphtest_key_many_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_graphtest_key_many_proto_goTypes = []any{
+	(*KeyMany)(nil), // 0: graphtest.KeyMany
 }
-var file_library_key_many_proto_depIdxs = []int32{
+var file_graphtest_key_many_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -150,26 +150,26 @@ var file_library_key_many_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_library_key_many_proto_init() }
-func file_library_key_many_proto_init() {
-	if File_library_key_many_proto != nil {
+func init() { file_graphtest_key_many_proto_init() }
+func file_graphtest_key_many_proto_init() {
+	if File_graphtest_key_many_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_library_key_many_proto_rawDesc), len(file_library_key_many_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_graphtest_key_many_proto_rawDesc), len(file_graphtest_key_many_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_library_key_many_proto_goTypes,
-		DependencyIndexes: file_library_key_many_proto_depIdxs,
-		MessageInfos:      file_library_key_many_proto_msgTypes,
+		GoTypes:           file_graphtest_key_many_proto_goTypes,
+		DependencyIndexes: file_graphtest_key_many_proto_depIdxs,
+		MessageInfos:      file_graphtest_key_many_proto_msgTypes,
 	}.Build()
-	File_library_key_many_proto = out.File
-	file_library_key_many_proto_goTypes = nil
-	file_library_key_many_proto_depIdxs = nil
+	File_graphtest_key_many_proto = out.File
+	file_graphtest_key_many_proto_goTypes = nil
+	file_graphtest_key_many_proto_depIdxs = nil
 }

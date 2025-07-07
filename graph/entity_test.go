@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/protobuf-orm/protobuf-orm/graph"
+	"github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest"
 	"github.com/protobuf-orm/protobuf-orm/internal/examples/library"
 	"github.com/protobuf-orm/protobuf-orm/ormpb"
 	"github.com/stretchr/testify/require"
@@ -15,30 +16,30 @@ import (
 
 func TestEntityEnable(t *testing.T) {
 	t.Run("enabled with option", WithGraph(func(ctx context.Context, x *require.Assertions, g *graph.Graph) {
-		err := graph.Parse(ctx, g, library.File_library_entity_proto)
+		err := graph.Parse(ctx, g, graphtest.File_graphtest_entity_proto)
 		x.NoError(err)
-		x.Contains(g.Entities, library.File_library_entity_proto.FullName().Append("EntityEnabled"))
+		x.Contains(g.Entities, graphtest.File_graphtest_entity_proto.FullName().Append("EntityEnabled"))
 	}))
 	t.Run("disabled since no option", WithGraph(func(ctx context.Context, x *require.Assertions, g *graph.Graph) {
-		err := graph.Parse(ctx, g, library.File_library_entity_proto)
+		err := graph.Parse(ctx, g, graphtest.File_graphtest_entity_proto)
 		x.NoError(err)
-		x.NotContains(g.Entities, library.File_library_entity_proto.FullName().Append("EntityDisabled"))
+		x.NotContains(g.Entities, graphtest.File_graphtest_entity_proto.FullName().Append("EntityDisabled"))
 	}))
 	t.Run("disabled with option", WithGraph(func(ctx context.Context, x *require.Assertions, g *graph.Graph) {
-		err := graph.Parse(ctx, g, library.File_library_entity_proto)
+		err := graph.Parse(ctx, g, graphtest.File_graphtest_entity_proto)
 		x.NoError(err)
-		x.NotContains(g.Entities, library.File_library_entity_proto.FullName().Append("EntityDisabledExplicit"))
+		x.NotContains(g.Entities, graphtest.File_graphtest_entity_proto.FullName().Append("EntityDisabledExplicit"))
 	}))
 }
 
 func TestEntityValidity(t *testing.T) {
 	t.Run("key is not defined", WithGraph(func(ctx context.Context, x *require.Assertions, g *graph.Graph) {
-		err := graph.Parse(ctx, g, library.File_library_key_no_proto)
+		err := graph.Parse(ctx, g, graphtest.File_graphtest_key_no_proto)
 		x.Error(err)
 		x.ErrorContains(err, "no key is defined")
 	}))
 	t.Run("two or more keys are defined", WithGraph(func(ctx context.Context, x *require.Assertions, g *graph.Graph) {
-		err := graph.Parse(ctx, g, library.File_library_key_many_proto)
+		err := graph.Parse(ctx, g, graphtest.File_graphtest_key_many_proto)
 		x.Error(err)
 		x.ErrorContains(err, "there can be only one key")
 		x.ErrorContains(err, "id:1")

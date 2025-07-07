@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.36.6
 // 	protoc        (unknown)
-// source: library/key_no.proto
+// source: graphtest/key_no.proto
 
-package library
+package graphtest
 
 import (
 	_ "github.com/protobuf-orm/protobuf-orm/ormpb"
@@ -32,7 +32,7 @@ type KeyNo struct {
 
 func (x *KeyNo) Reset() {
 	*x = KeyNo{}
-	mi := &file_library_key_no_proto_msgTypes[0]
+	mi := &file_graphtest_key_no_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -44,7 +44,7 @@ func (x *KeyNo) String() string {
 func (*KeyNo) ProtoMessage() {}
 
 func (x *KeyNo) ProtoReflect() protoreflect.Message {
-	mi := &file_library_key_no_proto_msgTypes[0]
+	mi := &file_graphtest_key_no_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -96,19 +96,19 @@ func (b0 KeyNo_builder) Build() *KeyNo {
 	return m0
 }
 
-var File_library_key_no_proto protoreflect.FileDescriptor
+var File_graphtest_key_no_proto protoreflect.FileDescriptor
 
-const file_library_key_no_proto_rawDesc = "" +
+const file_graphtest_key_no_proto_rawDesc = "" +
 	"\n" +
-	"\x14library/key_no.proto\x12\alibrary\x1a\torm.proto\"\x1d\n" +
+	"\x16graphtest/key_no.proto\x12\tgraphtest\x1a\torm.proto\"\x1d\n" +
 	"\x05KeyNo\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id:\x04\xca\xfc\x15\x00B@Z>github.com/protobuf-orm/protobuf-orm/internal/examples/libraryb\beditionsp\xe8\a"
+	"\x02id\x18\x01 \x01(\x05R\x02id:\x04\xca\xfc\x15\x00BBZ@github.com/protobuf-orm/protobuf-orm/internal/examples/graphtestb\beditionsp\xe8\a"
 
-var file_library_key_no_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_library_key_no_proto_goTypes = []any{
-	(*KeyNo)(nil), // 0: library.KeyNo
+var file_graphtest_key_no_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_graphtest_key_no_proto_goTypes = []any{
+	(*KeyNo)(nil), // 0: graphtest.KeyNo
 }
-var file_library_key_no_proto_depIdxs = []int32{
+var file_graphtest_key_no_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -116,26 +116,26 @@ var file_library_key_no_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_library_key_no_proto_init() }
-func file_library_key_no_proto_init() {
-	if File_library_key_no_proto != nil {
+func init() { file_graphtest_key_no_proto_init() }
+func file_graphtest_key_no_proto_init() {
+	if File_graphtest_key_no_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_library_key_no_proto_rawDesc), len(file_library_key_no_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_graphtest_key_no_proto_rawDesc), len(file_graphtest_key_no_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_library_key_no_proto_goTypes,
-		DependencyIndexes: file_library_key_no_proto_depIdxs,
-		MessageInfos:      file_library_key_no_proto_msgTypes,
+		GoTypes:           file_graphtest_key_no_proto_goTypes,
+		DependencyIndexes: file_graphtest_key_no_proto_depIdxs,
+		MessageInfos:      file_graphtest_key_no_proto_msgTypes,
 	}.Build()
-	File_library_key_no_proto = out.File
-	file_library_key_no_proto_goTypes = nil
-	file_library_key_no_proto_depIdxs = nil
+	File_graphtest_key_no_proto = out.File
+	file_graphtest_key_no_proto_goTypes = nil
+	file_graphtest_key_no_proto_depIdxs = nil
 }

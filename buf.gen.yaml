@@ -3,6 +3,7 @@ inputs:
   - directory: proto
   - directory: examples
     paths:
+      - examples/graphtest
       - examples/library
 plugins:
   - local: protoc-gen-go

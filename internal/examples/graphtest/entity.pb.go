@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.36.6
 // 	protoc        (unknown)
-// source: library/entity.proto
+// source: graphtest/entity.proto
 
-package library
+package graphtest
 
 import (
 	_ "github.com/protobuf-orm/protobuf-orm/ormpb"
@@ -32,7 +32,7 @@ type EntityEnabled struct {
 
 func (x *EntityEnabled) Reset() {
 	*x = EntityEnabled{}
-	mi := &file_library_entity_proto_msgTypes[0]
+	mi := &file_graphtest_entity_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -44,7 +44,7 @@ func (x *EntityEnabled) String() string {
 func (*EntityEnabled) ProtoMessage() {}
 
 func (x *EntityEnabled) ProtoReflect() protoreflect.Message {
-	mi := &file_library_entity_proto_msgTypes[0]
+	mi := &file_graphtest_entity_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -107,7 +107,7 @@ type EntityDisabled struct {
 
 func (x *EntityDisabled) Reset() {
 	*x = EntityDisabled{}
-	mi := &file_library_entity_proto_msgTypes[1]
+	mi := &file_graphtest_entity_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -119,7 +119,7 @@ func (x *EntityDisabled) String() string {
 func (*EntityDisabled) ProtoMessage() {}
 
 func (x *EntityDisabled) ProtoReflect() protoreflect.Message {
-	mi := &file_library_entity_proto_msgTypes[1]
+	mi := &file_graphtest_entity_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -182,7 +182,7 @@ type EntityDisabledExplicit struct {
 
 func (x *EntityDisabledExplicit) Reset() {
 	*x = EntityDisabledExplicit{}
-	mi := &file_library_entity_proto_msgTypes[2]
+	mi := &file_graphtest_entity_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -194,7 +194,7 @@ func (x *EntityDisabledExplicit) String() string {
 func (*EntityDisabledExplicit) ProtoMessage() {}
 
 func (x *EntityDisabledExplicit) ProtoReflect() protoreflect.Message {
-	mi := &file_library_entity_proto_msgTypes[2]
+	mi := &file_graphtest_entity_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -246,25 +246,25 @@ func (b0 EntityDisabledExplicit_builder) Build() *EntityDisabledExplicit {
 	return m0
 }
 
-var File_library_entity_proto protoreflect.FileDescriptor
+var File_graphtest_entity_proto protoreflect.FileDescriptor
 
-const file_library_entity_proto_rawDesc = "" +
+const file_graphtest_entity_proto_rawDesc = "" +
 	"\n" +
-	"\x14library/entity.proto\x12\alibrary\x1a\torm.proto\"-\n" +
+	"\x16graphtest/entity.proto\x12\tgraphtest\x1a\torm.proto\"-\n" +
 	"\rEntityEnabled\x12\x16\n" +
 	"\x02id\x18\x01 \x01(\x05B\x06\xea\x82\x16\x02(\x01R\x02id:\x04\xca\xfc\x15\x00\"(\n" +
 	"\x0eEntityDisabled\x12\x16\n" +
 	"\x02id\x18\x01 \x01(\x05B\x06\xea\x82\x16\x02(\x01R\x02id\"8\n" +
 	"\x16EntityDisabledExplicit\x12\x16\n" +
-	"\x02id\x18\x01 \x01(\x05B\x06\xea\x82\x16\x02(\x01R\x02id:\x06\xca\xfc\x15\x02\b\x01B@Z>github.com/protobuf-orm/protobuf-orm/internal/examples/libraryb\beditionsp\xe8\a"
+	"\x02id\x18\x01 \x01(\x05B\x06\xea\x82\x16\x02(\x01R\x02id:\x06\xca\xfc\x15\x02\b\x01BBZ@github.com/protobuf-orm/protobuf-orm/internal/examples/graphtestb\beditionsp\xe8\a"
 
-var file_library_entity_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_library_entity_proto_goTypes = []any{
-	(*EntityEnabled)(nil),          // 0: library.EntityEnabled
-	(*EntityDisabled)(nil),         // 1: library.EntityDisabled
-	(*EntityDisabledExplicit)(nil), // 2: library.EntityDisabledExplicit
+var file_graphtest_entity_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_graphtest_entity_proto_goTypes = []any{
+	(*EntityEnabled)(nil),          // 0: graphtest.EntityEnabled
+	(*EntityDisabled)(nil),         // 1: graphtest.EntityDisabled
+	(*EntityDisabledExplicit)(nil), // 2: graphtest.EntityDisabledExplicit
 }
-var file_library_entity_proto_depIdxs = []int32{
+var file_graphtest_entity_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -272,26 +272,26 @@ var file_library_entity_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_library_entity_proto_init() }
-func file_library_entity_proto_init() {
-	if File_library_entity_proto != nil {
+func init() { file_graphtest_entity_proto_init() }
+func file_graphtest_entity_proto_init() {
+	if File_graphtest_entity_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_library_entity_proto_rawDesc), len(file_library_entity_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_graphtest_entity_proto_rawDesc), len(file_graphtest_entity_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_library_entity_proto_goTypes,
-		DependencyIndexes: file_library_entity_proto_depIdxs,
-		MessageInfos:      file_library_entity_proto_msgTypes,
+		GoTypes:           file_graphtest_entity_proto_goTypes,
+		DependencyIndexes: file_graphtest_entity_proto_depIdxs,
+		MessageInfos:      file_graphtest_entity_proto_msgTypes,
 	}.Build()
-	File_library_entity_proto = out.File
-	file_library_entity_proto_goTypes = nil
-	file_library_entity_proto_depIdxs = nil
+	File_graphtest_entity_proto = out.File
+	file_graphtest_entity_proto_goTypes = nil
+	file_graphtest_entity_proto_depIdxs = nil
 }

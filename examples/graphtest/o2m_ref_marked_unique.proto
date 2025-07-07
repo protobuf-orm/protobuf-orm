@@ -1,10 +1,10 @@
 edition = "2023";
 
-package library;
+package graphtest;
 
 import "orm.proto";
 
-option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/library";
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
 
 message O2mRefMarkedUnique {
   int32 id = 1 [(orm.field) = {key: true}];
