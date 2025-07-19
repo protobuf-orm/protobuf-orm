@@ -20,6 +20,212 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type RpcOptions struct {
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Disabled    bool                   `protobuf:"varint,1,opt,name=disabled"`
+	xxx_hidden_Crud        bool                   `protobuf:"varint,2,opt,name=crud"`
+	xxx_hidden_Add         *RpcAdd                `protobuf:"bytes,16,opt,name=add"`
+	xxx_hidden_Get         *RpcGet                `protobuf:"bytes,17,opt,name=get"`
+	xxx_hidden_Patch       *RpcPatch              `protobuf:"bytes,18,opt,name=patch"`
+	xxx_hidden_Erase       *RpcErase              `protobuf:"bytes,19,opt,name=erase"`
+	XXX_raceDetectHookData protoimpl.RaceDetectHookData
+	XXX_presence           [1]uint32
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *RpcOptions) Reset() {
+	*x = RpcOptions{}
+	mi := &file_orm_options_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RpcOptions) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RpcOptions) ProtoMessage() {}
+
+func (x *RpcOptions) ProtoReflect() protoreflect.Message {
+	mi := &file_orm_options_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *RpcOptions) GetDisabled() bool {
+	if x != nil {
+		return x.xxx_hidden_Disabled
+	}
+	return false
+}
+
+func (x *RpcOptions) GetCrud() bool {
+	if x != nil {
+		return x.xxx_hidden_Crud
+	}
+	return false
+}
+
+func (x *RpcOptions) GetAdd() *RpcAdd {
+	if x != nil {
+		return x.xxx_hidden_Add
+	}
+	return nil
+}
+
+func (x *RpcOptions) GetGet() *RpcGet {
+	if x != nil {
+		return x.xxx_hidden_Get
+	}
+	return nil
+}
+
+func (x *RpcOptions) GetPatch() *RpcPatch {
+	if x != nil {
+		return x.xxx_hidden_Patch
+	}
+	return nil
+}
+
+func (x *RpcOptions) GetErase() *RpcErase {
+	if x != nil {
+		return x.xxx_hidden_Erase
+	}
+	return nil
+}
+
+func (x *RpcOptions) SetDisabled(v bool) {
+	x.xxx_hidden_Disabled = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 6)
+}
+
+func (x *RpcOptions) SetCrud(v bool) {
+	x.xxx_hidden_Crud = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 6)
+}
+
+func (x *RpcOptions) SetAdd(v *RpcAdd) {
+	x.xxx_hidden_Add = v
+}
+
+func (x *RpcOptions) SetGet(v *RpcGet) {
+	x.xxx_hidden_Get = v
+}
+
+func (x *RpcOptions) SetPatch(v *RpcPatch) {
+	x.xxx_hidden_Patch = v
+}
+
+func (x *RpcOptions) SetErase(v *RpcErase) {
+	x.xxx_hidden_Erase = v
+}
+
+func (x *RpcOptions) HasDisabled() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *RpcOptions) HasCrud() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
+}
+
+func (x *RpcOptions) HasAdd() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Add != nil
+}
+
+func (x *RpcOptions) HasGet() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Get != nil
+}
+
+func (x *RpcOptions) HasPatch() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Patch != nil
+}
+
+func (x *RpcOptions) HasErase() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Erase != nil
+}
+
+func (x *RpcOptions) ClearDisabled() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_Disabled = false
+}
+
+func (x *RpcOptions) ClearCrud() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_Crud = false
+}
+
+func (x *RpcOptions) ClearAdd() {
+	x.xxx_hidden_Add = nil
+}
+
+func (x *RpcOptions) ClearGet() {
+	x.xxx_hidden_Get = nil
+}
+
+func (x *RpcOptions) ClearPatch() {
+	x.xxx_hidden_Patch = nil
+}
+
+func (x *RpcOptions) ClearErase() {
+	x.xxx_hidden_Erase = nil
+}
+
+type RpcOptions_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	Disabled *bool
+	// Enables add, get, patch, and erase.
+	Crud  *bool
+	Add   *RpcAdd
+	Get   *RpcGet
+	Patch *RpcPatch
+	Erase *RpcErase
+}
+
+func (b0 RpcOptions_builder) Build() *RpcOptions {
+	m0 := &RpcOptions{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Disabled != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 6)
+		x.xxx_hidden_Disabled = *b.Disabled
+	}
+	if b.Crud != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 6)
+		x.xxx_hidden_Crud = *b.Crud
+	}
+	x.xxx_hidden_Add = b.Add
+	x.xxx_hidden_Get = b.Get
+	x.xxx_hidden_Patch = b.Patch
+	x.xxx_hidden_Erase = b.Erase
+	return m0
+}
+
 type MessageOptions struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Disabled    bool                   `protobuf:"varint,1,opt,name=disabled"`
@@ -33,7 +239,7 @@ type MessageOptions struct {
 
 func (x *MessageOptions) Reset() {
 	*x = MessageOptions{}
-	mi := &file_orm_options_proto_msgTypes[0]
+	mi := &file_orm_options_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -45,7 +251,7 @@ func (x *MessageOptions) String() string {
 func (*MessageOptions) ProtoMessage() {}
 
 func (x *MessageOptions) ProtoReflect() protoreflect.Message {
-	mi := &file_orm_options_proto_msgTypes[0]
+	mi := &file_orm_options_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -153,7 +359,7 @@ type FieldOptions struct {
 
 func (x *FieldOptions) Reset() {
 	*x = FieldOptions{}
-	mi := &file_orm_options_proto_msgTypes[1]
+	mi := &file_orm_options_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -165,7 +371,7 @@ func (x *FieldOptions) String() string {
 func (*FieldOptions) ProtoMessage() {}
 
 func (x *FieldOptions) ProtoReflect() protoreflect.Message {
-	mi := &file_orm_options_proto_msgTypes[1]
+	mi := &file_orm_options_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -413,7 +619,7 @@ type EdgeOptions struct {
 
 func (x *EdgeOptions) Reset() {
 	*x = EdgeOptions{}
-	mi := &file_orm_options_proto_msgTypes[2]
+	mi := &file_orm_options_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -425,7 +631,7 @@ func (x *EdgeOptions) String() string {
 func (*EdgeOptions) ProtoMessage() {}
 
 func (x *EdgeOptions) ProtoReflect() protoreflect.Message {
-	mi := &file_orm_options_proto_msgTypes[2]
+	mi := &file_orm_options_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -616,7 +822,15 @@ var File_orm_options_proto protoreflect.FileDescriptor
 
 const file_orm_options_proto_rawDesc = "" +
 	"\n" +
-	"\x11orm/options.proto\x12\x03orm\x1a\x0form/index.proto\x1a\rorm/ref.proto\x1a\rorm/rpc.proto\x1a\x0eorm/type.proto\"u\n" +
+	"\x11orm/options.proto\x12\x03orm\x1a\x0form/index.proto\x1a\rorm/ref.proto\x1a\rorm/rpc.proto\x1a\x0eorm/type.proto\"\xc4\x01\n" +
+	"\n" +
+	"RpcOptions\x12\x1a\n" +
+	"\bdisabled\x18\x01 \x01(\bR\bdisabled\x12\x12\n" +
+	"\x04crud\x18\x02 \x01(\bR\x04crud\x12\x1d\n" +
+	"\x03add\x18\x10 \x01(\v2\v.orm.RpcAddR\x03add\x12\x1d\n" +
+	"\x03get\x18\x11 \x01(\v2\v.orm.RpcGetR\x03get\x12#\n" +
+	"\x05patch\x18\x12 \x01(\v2\r.orm.RpcPatchR\x05patch\x12#\n" +
+	"\x05erase\x18\x13 \x01(\v2\r.orm.RpcEraseR\x05erase\"u\n" +
 	"\x0eMessageOptions\x12\x1a\n" +
 	"\bdisabled\x18\x01 \x01(\bR\bdisabled\x12!\n" +
 	"\x03rpc\x18\x02 \x01(\v2\x0f.orm.RpcOptionsR\x03rpc\x12$\n" +
@@ -638,27 +852,35 @@ const file_orm_options_proto_rawDesc = "" +
 	"\bnullable\x18\a \x01(\bR\bnullable\x12\x1c\n" +
 	"\timmutable\x18\b \x01(\bR\timmutableB,Z*github.com/protobuf-orm/protobuf-orm/ormpbb\beditionsp\xe8\a"
 
-var file_orm_options_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_orm_options_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_orm_options_proto_goTypes = []any{
-	(*MessageOptions)(nil), // 0: orm.MessageOptions
-	(*FieldOptions)(nil),   // 1: orm.FieldOptions
-	(*EdgeOptions)(nil),    // 2: orm.EdgeOptions
-	(*RpcOptions)(nil),     // 3: orm.RpcOptions
-	(*Index)(nil),          // 4: orm.Index
-	(Type)(0),              // 5: orm.Type
-	(*Ref)(nil),            // 6: orm.Ref
+	(*RpcOptions)(nil),     // 0: orm.RpcOptions
+	(*MessageOptions)(nil), // 1: orm.MessageOptions
+	(*FieldOptions)(nil),   // 2: orm.FieldOptions
+	(*EdgeOptions)(nil),    // 3: orm.EdgeOptions
+	(*RpcAdd)(nil),         // 4: orm.RpcAdd
+	(*RpcGet)(nil),         // 5: orm.RpcGet
+	(*RpcPatch)(nil),       // 6: orm.RpcPatch
+	(*RpcErase)(nil),       // 7: orm.RpcErase
+	(*Index)(nil),          // 8: orm.Index
+	(Type)(0),              // 9: orm.Type
+	(*Ref)(nil),            // 10: orm.Ref
 }
 var file_orm_options_proto_depIdxs = []int32{
-	3, // 0: orm.MessageOptions.rpc:type_name -> orm.RpcOptions
-	4, // 1: orm.MessageOptions.indexes:type_name -> orm.Index
-	5, // 2: orm.FieldOptions.type:type_name -> orm.Type
-	6, // 3: orm.EdgeOptions.bind:type_name -> orm.Ref
-	6, // 4: orm.EdgeOptions.from:type_name -> orm.Ref
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	4,  // 0: orm.RpcOptions.add:type_name -> orm.RpcAdd
+	5,  // 1: orm.RpcOptions.get:type_name -> orm.RpcGet
+	6,  // 2: orm.RpcOptions.patch:type_name -> orm.RpcPatch
+	7,  // 3: orm.RpcOptions.erase:type_name -> orm.RpcErase
+	0,  // 4: orm.MessageOptions.rpc:type_name -> orm.RpcOptions
+	8,  // 5: orm.MessageOptions.indexes:type_name -> orm.Index
+	9,  // 6: orm.FieldOptions.type:type_name -> orm.Type
+	10, // 7: orm.EdgeOptions.bind:type_name -> orm.Ref
+	10, // 8: orm.EdgeOptions.from:type_name -> orm.Ref
+	9,  // [9:9] is the sub-list for method output_type
+	9,  // [9:9] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_orm_options_proto_init() }
@@ -676,7 +898,7 @@ func file_orm_options_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_orm_options_proto_rawDesc), len(file_orm_options_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

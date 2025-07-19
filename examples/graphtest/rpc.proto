@@ -1,0 +1,60 @@
+edition = "2023";
+
+package graphtest;
+
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
+
+message RpcEnabled {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // RPC is enabled if `orm.message.rpc.*` is defined.
+  option (orm.message) = {
+    rpc: {
+      add: {}
+    }
+  };
+}
+
+message RpcCrud {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // RPCs for CURD are enabled if `orm.message.rpc.crud` is `true`.
+  option (orm.message) = {
+    rpc: {crud: true}
+  };
+}
+
+message RpcCrudExclude {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // RPCs for CURD are enabled if `orm.message.rpc.crud` is `true`
+  // except for the RPC which is disabled explicitly.
+  option (orm.message) = {
+    rpc: {
+      crud: true
+      add: {disabled: true}
+    }
+  };
+}
+
+message RpcDisabled {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // No `orm.message.rpc.*` so no RPCs are enabled.
+  option (orm.message) = {};
+}
+
+message RpcDisabledExplicit {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // Although `orm.message.rpc.*` is defined, the `orm.message.rpc.disabled` is set by `true`,
+  // so the RPC is not enabled.
+  option (orm.message) = {
+    rpc: {
+      disabled: true
+      add: {}
+    }
+  };
+}

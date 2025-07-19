@@ -9,6 +9,18 @@ import "orm/type.proto";
 
 option go_package = "github.com/protobuf-orm/protobuf-orm/ormpb";
 
+message RpcOptions {
+  bool disabled = 1;
+
+  // Enables add, get, patch, and erase.
+  bool crud = 2;
+
+  RpcAdd add = 16;
+  RpcGet get = 17;
+  RpcPatch patch = 18;
+  RpcErase erase = 19;
+}
+
 message MessageOptions {
   bool disabled = 1;
 

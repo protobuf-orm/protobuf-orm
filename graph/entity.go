@@ -15,6 +15,7 @@ import (
 // Entity is a schema description.
 type Entity interface {
 	FullName() protoreflect.FullName
+	Rpcs() RpcMap
 	Key() Field
 	Props() iter.Seq[Prop]
 	Fields() iter.Seq[Field]
@@ -26,6 +27,8 @@ type Entity interface {
 type protoEntity struct {
 	// Proto message which this entity is based on.
 	source protoreflect.MessageDescriptor
+
+	rpcs *rpcMap
 
 	// Proto field which represents a key.
 	key     *protoField
@@ -149,11 +152,17 @@ func parseEntity(
 		return nil, errors.Join(errs...)
 	}
 
+	v.rpcs = parseRpcs(ctx, g, v, opts.GetRpc())
+
 	return v, nil
 }
 
 func (e *protoEntity) FullName() protoreflect.FullName {
 	return e.source.FullName()
+}
+
+func (e *protoEntity) Rpcs() RpcMap {
+	return e.rpcs
 }
 
 func (e *protoEntity) Key() Field {
