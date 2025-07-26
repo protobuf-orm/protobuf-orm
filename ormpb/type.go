@@ -6,21 +6,9 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 )
 
-// DeduceType deduces proper type for the given field.
-// It returns `want` as-is if the `want` can be a type for the given field.
-// [Type_TYPE_MESSAGE] is returned only and only if the field type is a explicit message type and not known message.
-// Known messages and their deduced types are as follows::
-//
-//	"google.protobuf.Timestamp": Type_TYPE_TIME
-func DeduceType(f protoreflect.FieldDescriptor, want Type) (Type, error) {
-	if want != Type_TYPE_UNSPECIFIED {
-		// TODO: do validation
-		// e.g. if the kind is Bool, the type must be Bool.
-		return want, nil
-	}
-
+func TypeFromKind(k protoreflect.Kind) Type {
 	v := Type_TYPE_UNSPECIFIED
-	switch f.Kind() {
+	switch k {
 	case protoreflect.BoolKind:
 		v = Type_TYPE_BOOL
 	case protoreflect.EnumKind:
@@ -57,8 +45,26 @@ func DeduceType(f protoreflect.FieldDescriptor, want Type) (Type, error) {
 		v = Type_TYPE_MESSAGE
 	case protoreflect.GroupKind:
 		v = Type_TYPE_GROUP
+	}
 
-	default:
+	return v
+}
+
+// DeduceType deduces proper type for the given field.
+// It returns `want` as-is if the `want` can be a type for the given field.
+// [Type_TYPE_MESSAGE] is returned only and only if the field type is a explicit message type and not known message.
+// Known messages and their deduced types are as follows::
+//
+//	"google.protobuf.Timestamp": Type_TYPE_TIME
+func DeduceType(f protoreflect.FieldDescriptor, want Type) (Type, error) {
+	if want != Type_TYPE_UNSPECIFIED {
+		// TODO: do validation
+		// e.g. if the kind is Bool, the type must be Bool.
+		return want, nil
+	}
+
+	v := TypeFromKind(f.Kind())
+	if v == Type_TYPE_UNSPECIFIED {
 		return Type_TYPE_UNSPECIFIED, fmt.Errorf("unknown type of proto field: %v", f.Kind().String())
 	}
 	if v != Type_TYPE_MESSAGE {
@@ -73,6 +79,14 @@ func DeduceType(f protoreflect.FieldDescriptor, want Type) (Type, error) {
 	}
 
 	return v, nil
+}
+
+func (t Type) IsMessage() bool {
+	return t.Decay() == Type_TYPE_MESSAGE
+}
+
+func (t Type) IsScalar() bool {
+	return !t.IsMessage()
 }
 
 func (t Type) Decay() Type {
@@ -91,6 +105,15 @@ func (t Type) Decay() Type {
 		Type_TYPE_FIXED32,
 		Type_TYPE_FIXED64:
 		return Type_TYPE_UINT
+	case
+		Type_TYPE_ENUM,
+		Type_TYPE_MESSAGE,
+		Type_TYPE_JSON,
+		Type_TYPE_TIME:
+		return Type_TYPE_MESSAGE
+	case
+		Type_TYPE_UUID:
+		return Type_TYPE_BYTES
 	}
 
 	return t

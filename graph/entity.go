@@ -14,6 +14,9 @@ import (
 
 // Entity is a schema description.
 type Entity interface {
+	Path() string
+	Package() string
+
 	FullName() protoreflect.FullName
 	Rpcs() RpcMap
 	Key() Field
@@ -50,8 +53,6 @@ func parseEntity(
 	// - self-reference
 	// - circular reference
 	g.Entities[m.FullName()] = v
-
-	// TODO: fill rpcs and indexes
 
 	errs := []error{}
 
@@ -155,6 +156,14 @@ func parseEntity(
 	v.rpcs = parseRpcs(ctx, g, v, opts.GetRpc())
 
 	return v, nil
+}
+
+func (e *protoEntity) Path() string {
+	return e.source.ParentFile().Path()
+}
+
+func (e protoEntity) Package() string {
+	return string(e.source.ParentFile().Package())
 }
 
 func (e *protoEntity) FullName() protoreflect.FullName {
