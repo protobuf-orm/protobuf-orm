@@ -22,6 +22,10 @@ type Prop interface {
 	IsUnique() bool
 	IsNullable() bool
 	IsImmutable() bool
+
+	// IsOptional indicates that this prop is
+	// does not have to be provided when this entity is created.
+	IsOptional() bool
 }
 
 type protoProp struct {
@@ -74,6 +78,10 @@ func parseProp(ctx context.Context, g *Graph, e *protoEntity, mf protoreflect.Fi
 	// is_edge := !is_field
 
 	if is_field {
+		if of.GetKey() {
+			of.SetImmutable(true)
+		}
+
 		return &protoField{
 			protoProp: prop,
 			opts:      of,

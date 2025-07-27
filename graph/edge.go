@@ -43,6 +43,10 @@ func (f *protoEdge) IsImmutable() bool {
 	return f.opts.GetImmutable()
 }
 
+func (f *protoEdge) IsOptional() bool {
+	return f.IsNullable()
+}
+
 func (e *protoEdge) Target() Entity {
 	return e.target
 }
