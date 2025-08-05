@@ -17,8 +17,10 @@ type Prop interface {
 	Entity() Entity
 
 	FullName() protoreflect.FullName
+	Name() string
 	Number() protoreflect.FieldNumber
 
+	IsList() bool
 	IsUnique() bool
 	IsNullable() bool
 	IsImmutable() bool
@@ -86,6 +88,8 @@ func parseProp(ctx context.Context, g *Graph, e *protoEntity, mf protoreflect.Fi
 			protoProp: prop,
 			opts:      of,
 		}, nil
+	} else if oe == nil {
+		oe = &ormpb.EdgeOptions{}
 	}
 
 	// Test if the reference is valid entity.
@@ -105,7 +109,7 @@ func parseProp(ctx context.Context, g *Graph, e *protoEntity, mf protoreflect.Fi
 		// target = parseEntity(...)
 		panic("not implemented")
 	}
-	if mf.Cardinality() == protoreflect.Repeated && oe.GetUnique() {
+	if oe.GetUnique() && mf.Cardinality() == protoreflect.Repeated {
 		return nil, fmt.Errorf("edge with repeated cardinality cannot be unique")
 	}
 
@@ -124,6 +128,14 @@ func (p protoProp) FullName() protoreflect.FullName {
 	return p.source.FullName()
 }
 
+func (p protoProp) Name() string {
+	return string(p.source.FullName().Name())
+}
+
 func (p protoProp) Number() protoreflect.FieldNumber {
 	return p.source.Number()
+}
+
+func (p protoProp) IsList() bool {
+	return p.source.IsList()
 }

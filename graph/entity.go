@@ -18,12 +18,22 @@ type Entity interface {
 	Package() string
 
 	FullName() protoreflect.FullName
+	Name() string
+
 	Rpcs() RpcMap
 	Key() Field
+
+	Elems() iter.Seq[Elem]
 	Props() iter.Seq[Prop]
 	Fields() iter.Seq[Field]
 	Edges() iter.Seq[Edge]
 	Indexes() iter.Seq[Index]
+
+	HasElems() bool
+	HasProps() bool
+	HasFields() bool
+	HasEdges() bool
+	HasIndexes() bool
 }
 
 // Entity parsed from the proto message.
@@ -170,12 +180,31 @@ func (e *protoEntity) FullName() protoreflect.FullName {
 	return e.source.FullName()
 }
 
+func (e *protoEntity) Name() string {
+	return string(e.source.FullName().Name())
+}
+
 func (e *protoEntity) Rpcs() RpcMap {
 	return e.rpcs
 }
 
 func (e *protoEntity) Key() Field {
 	return e.key
+}
+
+func (e *protoEntity) Elems() iter.Seq[Elem] {
+	return func(yield func(Elem) bool) {
+		for _, v := range e.props {
+			if !yield(v) {
+				return
+			}
+		}
+		for _, v := range e.indexes {
+			if !yield(v) {
+				return
+			}
+		}
+	}
 }
 
 func (e *protoEntity) Props() iter.Seq[Prop] {
@@ -208,4 +237,42 @@ func (e *protoEntity) Edges() iter.Seq[Edge] {
 
 func (e *protoEntity) Indexes() iter.Seq[Index] {
 	return slices.Values(e.indexes)
+}
+
+func (e *protoEntity) HasElems() bool {
+	return e.HasProps() || e.HasIndexes()
+}
+
+func (e *protoEntity) HasProps() bool {
+	return len(e.props) > 0
+}
+
+func (e *protoEntity) HasFields() (ok bool) {
+	if !e.HasProps() {
+		return false
+	}
+
+	e.Fields()(func(_ Field) bool {
+		ok = true
+		return false
+	})
+
+	return
+}
+
+func (e *protoEntity) HasEdges() (ok bool) {
+	if !e.HasProps() {
+		return false
+	}
+
+	e.Edges()(func(_ Edge) bool {
+		ok = true
+		return false
+	})
+
+	return
+}
+
+func (e *protoEntity) HasIndexes() bool {
+	return len(e.indexes) > 0
 }

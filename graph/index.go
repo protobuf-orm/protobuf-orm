@@ -11,8 +11,12 @@ import (
 )
 
 type Index interface {
+	// Entity which holds this index.
+	Entity() Entity
+
 	Name() string
 	Props() iter.Seq[Prop]
+
 	IsUnique() bool
 	IsImmutable() bool
 	IsHidden() bool
@@ -66,6 +70,10 @@ func parseIndex(
 		return nil, errors.Join(errs...)
 	}
 	return v, nil
+}
+
+func (i *protoIndex) Entity() Entity {
+	return i.entity
 }
 
 func (i *protoIndex) Name() string {
