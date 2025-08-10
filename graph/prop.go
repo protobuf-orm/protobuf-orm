@@ -20,6 +20,9 @@ type Prop interface {
 	Name() string
 	Number() protoreflect.FieldNumber
 
+	HasDefault() bool
+	// GetDefault() any
+
 	IsList() bool
 	IsUnique() bool
 	IsNullable() bool
@@ -27,6 +30,9 @@ type Prop interface {
 
 	// IsOptional indicates that this prop is
 	// does not have to be provided when this entity is created.
+	// Returns `true` if any of the following is true:
+	//  - IsNullable() returns true.
+	//  - HasDefault() returns true.
 	IsOptional() bool
 }
 
@@ -35,6 +41,8 @@ type protoProp struct {
 	source protoreflect.FieldDescriptor
 	// Entity which holds this prop.
 	entity *protoEntity
+
+	opts commonOpts
 }
 
 // Note that it does not find a inverse for the edge
@@ -84,6 +92,7 @@ func parseProp(ctx context.Context, g *Graph, e *protoEntity, mf protoreflect.Fi
 			of.SetImmutable(true)
 		}
 
+		prop.opts = of
 		return &protoField{
 			protoProp: prop,
 			opts:      of,
@@ -113,6 +122,7 @@ func parseProp(ctx context.Context, g *Graph, e *protoEntity, mf protoreflect.Fi
 		return nil, fmt.Errorf("edge with repeated cardinality cannot be unique")
 	}
 
+	prop.opts = oe
 	return &protoEdge{
 		protoProp: prop,
 		opts:      oe,
@@ -136,6 +146,33 @@ func (p protoProp) Number() protoreflect.FieldNumber {
 	return p.source.Number()
 }
 
+func (f protoProp) HasDefault() bool {
+	return f.opts.HasDefault()
+}
+
 func (p protoProp) IsList() bool {
 	return p.source.IsList()
+}
+
+func (f protoProp) IsUnique() bool {
+	return f.opts.GetUnique()
+}
+
+func (f protoProp) IsNullable() bool {
+	return f.opts.GetNullable() || f.source.HasOptionalKeyword()
+}
+
+func (f protoProp) IsImmutable() bool {
+	return f.opts.GetImmutable()
+}
+
+func (f protoProp) IsOptional() bool {
+	return f.IsNullable() || f.HasDefault()
+}
+
+type commonOpts interface {
+	GetUnique() bool
+	GetNullable() bool
+	GetImmutable() bool
+	HasDefault() bool
 }

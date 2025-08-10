@@ -611,6 +611,7 @@ type EdgeOptions struct {
 	xxx_hidden_Unique      bool                   `protobuf:"varint,6,opt,name=unique"`
 	xxx_hidden_Nullable    bool                   `protobuf:"varint,7,opt,name=nullable"`
 	xxx_hidden_Immutable   bool                   `protobuf:"varint,8,opt,name=immutable"`
+	xxx_hidden_Default     *string                `protobuf:"bytes,16,opt,name=default"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
 	unknownFields          protoimpl.UnknownFields
@@ -684,9 +685,19 @@ func (x *EdgeOptions) GetImmutable() bool {
 	return false
 }
 
+func (x *EdgeOptions) GetDefault() string {
+	if x != nil {
+		if x.xxx_hidden_Default != nil {
+			return *x.xxx_hidden_Default
+		}
+		return ""
+	}
+	return ""
+}
+
 func (x *EdgeOptions) SetDisabled(v bool) {
 	x.xxx_hidden_Disabled = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 6)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 7)
 }
 
 func (x *EdgeOptions) SetBind(v *Ref) {
@@ -699,17 +710,22 @@ func (x *EdgeOptions) SetFrom(v *Ref) {
 
 func (x *EdgeOptions) SetUnique(v bool) {
 	x.xxx_hidden_Unique = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 6)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 7)
 }
 
 func (x *EdgeOptions) SetNullable(v bool) {
 	x.xxx_hidden_Nullable = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 6)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 7)
 }
 
 func (x *EdgeOptions) SetImmutable(v bool) {
 	x.xxx_hidden_Immutable = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 6)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 7)
+}
+
+func (x *EdgeOptions) SetDefault(v string) {
+	x.xxx_hidden_Default = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 6, 7)
 }
 
 func (x *EdgeOptions) HasDisabled() bool {
@@ -754,6 +770,13 @@ func (x *EdgeOptions) HasImmutable() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 5)
 }
 
+func (x *EdgeOptions) HasDefault() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 6)
+}
+
 func (x *EdgeOptions) ClearDisabled() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
 	x.xxx_hidden_Disabled = false
@@ -782,6 +805,11 @@ func (x *EdgeOptions) ClearImmutable() {
 	x.xxx_hidden_Immutable = false
 }
 
+func (x *EdgeOptions) ClearDefault() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 6)
+	x.xxx_hidden_Default = nil
+}
+
 type EdgeOptions_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -791,6 +819,8 @@ type EdgeOptions_builder struct {
 	Unique    *bool
 	Nullable  *bool
 	Immutable *bool
+	// TODO: Any?
+	Default *string
 }
 
 func (b0 EdgeOptions_builder) Build() *EdgeOptions {
@@ -798,22 +828,26 @@ func (b0 EdgeOptions_builder) Build() *EdgeOptions {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Disabled != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 6)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 7)
 		x.xxx_hidden_Disabled = *b.Disabled
 	}
 	x.xxx_hidden_Bind = b.Bind
 	x.xxx_hidden_From = b.From
 	if b.Unique != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 6)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 7)
 		x.xxx_hidden_Unique = *b.Unique
 	}
 	if b.Nullable != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 6)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 7)
 		x.xxx_hidden_Nullable = *b.Nullable
 	}
 	if b.Immutable != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 6)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 7)
 		x.xxx_hidden_Immutable = *b.Immutable
+	}
+	if b.Default != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 6, 7)
+		x.xxx_hidden_Default = b.Default
 	}
 	return m0
 }
@@ -843,14 +877,15 @@ const file_orm_options_proto_rawDesc = "" +
 	"\x06unique\x18\x06 \x01(\bR\x06unique\x12\x1a\n" +
 	"\bnullable\x18\a \x01(\bR\bnullable\x12\x1c\n" +
 	"\timmutable\x18\b \x01(\bR\timmutable\x12\x18\n" +
-	"\adefault\x18\x10 \x01(\tR\adefault\"\xb7\x01\n" +
+	"\adefault\x18\x10 \x01(\tR\adefault\"\xd1\x01\n" +
 	"\vEdgeOptions\x12\x1a\n" +
 	"\bdisabled\x18\x01 \x01(\bR\bdisabled\x12\x1c\n" +
 	"\x04bind\x18\x02 \x01(\v2\b.orm.RefR\x04bind\x12\x1c\n" +
 	"\x04from\x18\x03 \x01(\v2\b.orm.RefR\x04from\x12\x16\n" +
 	"\x06unique\x18\x06 \x01(\bR\x06unique\x12\x1a\n" +
 	"\bnullable\x18\a \x01(\bR\bnullable\x12\x1c\n" +
-	"\timmutable\x18\b \x01(\bR\timmutableB,Z*github.com/protobuf-orm/protobuf-orm/ormpbb\beditionsp\xe8\a"
+	"\timmutable\x18\b \x01(\bR\timmutable\x12\x18\n" +
+	"\adefault\x18\x10 \x01(\tR\adefaultB,Z*github.com/protobuf-orm/protobuf-orm/ormpbb\beditionsp\xe8\a"
 
 var file_orm_options_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_orm_options_proto_goTypes = []any{

@@ -51,4 +51,7 @@ message EdgeOptions {
   bool unique = 6;
   bool nullable = 7;
   bool immutable = 8;
+
+  // TODO: Any?
+  string default = 16;
 }

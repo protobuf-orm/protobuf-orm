@@ -17,22 +17,6 @@ type protoField struct {
 	opts *ormpb.FieldOptions
 }
 
-func (f *protoField) IsUnique() bool {
-	return f.opts.GetUnique()
-}
-
-func (f *protoField) IsNullable() bool {
-	return f.opts.GetNullable()
-}
-
-func (f *protoField) IsImmutable() bool {
-	return f.opts.GetImmutable()
-}
-
-func (f *protoField) IsOptional() bool {
-	return f.IsNullable() || f.opts.HasDefault()
-}
-
 func (f *protoField) Type() ormpb.Type {
 	return f.opts.GetType()
 }
