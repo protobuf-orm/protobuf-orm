@@ -161,7 +161,7 @@ func (f protoProp) IsUnique() bool {
 }
 
 func (f protoProp) IsNullable() bool {
-	return f.opts.GetNullable() || f.source.HasOptionalKeyword()
+	return f.opts.GetNullable() || f.source.HasOptionalKeyword() || f.IsList()
 }
 
 func (f protoProp) IsImmutable() bool {
