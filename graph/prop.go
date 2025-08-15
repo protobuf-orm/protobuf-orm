@@ -112,8 +112,10 @@ func parseProp(ctx context.Context, g *Graph, e *protoEntity, mf protoreflect.Fi
 			return nil, fmt.Errorf("target entity not found: %s", target_name)
 		}
 
-		// Seems that the target is defined in the same file
-		// so try to parse the target first.
+		// Target entity is
+		//	- defined but not enabled for ORM. -> return error
+		//	- defined in the same file after this entity. -> try to parse the target first.
+
 		// TODO:
 		// target = parseEntity(...)
 		panic("not implemented")
@@ -159,7 +161,7 @@ func (f protoProp) IsUnique() bool {
 }
 
 func (f protoProp) IsNullable() bool {
-	return f.opts.GetNullable() || f.source.HasOptionalKeyword()
+	return f.opts.GetNullable() || f.source.HasOptionalKeyword() || f.source.HasPresence()
 }
 
 func (f protoProp) IsImmutable() bool {

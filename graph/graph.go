@@ -7,6 +7,7 @@ import (
 	"maps"
 
 	"github.com/protobuf-orm/protobuf-orm/ormpb"
+	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -60,5 +61,20 @@ func Parse(ctx context.Context, g *Graph, f protoreflect.FileDescriptor) error {
 	}
 
 	g.InPlaceMerge(g_)
+	return nil
+}
+
+func ParseFiles(ctx context.Context, g *Graph, fs []*protogen.File) error {
+	for _, f := range fs {
+		if !f.Generate {
+			continue
+		}
+
+		d := f.Desc
+		if err := Parse(ctx, g, d); err != nil {
+			return fmt.Errorf("parse %s: %w", d.Path(), err)
+		}
+	}
+
 	return nil
 }
