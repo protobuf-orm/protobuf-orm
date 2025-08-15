@@ -8,6 +8,14 @@ import "orm.proto";
 option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
 
 message ScalarField {
+  enum Level {
+    LEVEL_UNSPECIFIED = 0;
+
+    LEVEL_EASY = 1;
+    LEVEL_NORM = 2;
+    LEVEL_HARD = 3;
+  }
+
   string id = 1 [(orm.field) = {key: true}];
 
   double implicit_f64 = 0x10 [features.field_presence = IMPLICIT];
@@ -25,6 +33,7 @@ message ScalarField {
   bool implicit_bool = 0x1C [features.field_presence = IMPLICIT];
   string implicit_string = 0x1D [features.field_presence = IMPLICIT];
   bytes implicit_bytes = 0x1E [features.field_presence = IMPLICIT];
+  Level implicit_enum = 0x1F [features.field_presence = IMPLICIT];
 
   double explicit_f64 = 0x30 [features.field_presence = EXPLICIT];
   float explicit_f32 = 0x31 [features.field_presence = EXPLICIT];
@@ -41,6 +50,7 @@ message ScalarField {
   bool explicit_bool = 0x3C [features.field_presence = EXPLICIT];
   string explicit_string = 0x3D [features.field_presence = EXPLICIT];
   bytes explicit_bytes = 0x3E [features.field_presence = EXPLICIT];
+  Level explicit_enum = 0x3F [features.field_presence = EXPLICIT];
 
   repeated double implicit_f64s = 0x50;
   repeated float implicit_f32s = 0x51;
@@ -57,6 +67,7 @@ message ScalarField {
   repeated bool implicit_bools = 0x5C;
   repeated string implicit_strings = 0x5D;
   repeated bytes implicit_bytess = 0x5E;
+  repeated Level implicit_levels = 0x5F;
 
   double nullable_f64 = 0x70 [(orm.field) = {nullable: true}];
   float nullable_f32 = 0x71 [(orm.field) = {nullable: true}];
@@ -73,6 +84,7 @@ message ScalarField {
   bool nullable_bool = 0x7C [(orm.field) = {nullable: true}];
   string nullable_string = 0x7D [(orm.field) = {nullable: true}];
   bytes nullable_bytes = 0x7E [(orm.field) = {nullable: true}];
+  Level nullable_level = 0x7F [(orm.field) = {nullable: true}];
 
   double implicit_f64_with_default = 0x90 [
     features.field_presence = IMPLICIT,
@@ -131,6 +143,10 @@ message ScalarField {
     (orm.field) = {default: ""}
   ];
   bytes implicit_bytes_with_default = 0x9E [
+    features.field_presence = IMPLICIT,
+    (orm.field) = {default: ""}
+  ];
+  Level implicit_level_with_default = 0x9F [
     features.field_presence = IMPLICIT,
     (orm.field) = {default: ""}
   ];
@@ -195,6 +211,10 @@ message ScalarField {
     features.field_presence = EXPLICIT,
     (orm.field) = {default: ""}
   ];
+  Level explicit_level_with_default = 0xBF [
+    features.field_presence = EXPLICIT,
+    (orm.field) = {default: ""}
+  ];
 
   double implicit_immutable_f64 = 0xD0 [
     features.field_presence = IMPLICIT,
@@ -256,6 +276,10 @@ message ScalarField {
     features.field_presence = IMPLICIT,
     (orm.field) = {immutable: true}
   ];
+  Level implicit_immutable_level = 0xDF [
+    features.field_presence = IMPLICIT,
+    (orm.field) = {immutable: true}
+  ];
 
   double explicit_immutable_f64 = 0xF0 [
     features.field_presence = EXPLICIT,
@@ -314,6 +338,10 @@ message ScalarField {
     (orm.field) = {immutable: true}
   ];
   bytes explicit_immutable_bytes = 0xFE [
+    features.field_presence = EXPLICIT,
+    (orm.field) = {immutable: true}
+  ];
+  Level explicit_immutable_level = 0xFF [
     features.field_presence = EXPLICIT,
     (orm.field) = {immutable: true}
   ];

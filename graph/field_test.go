@@ -10,7 +10,7 @@ import (
 )
 
 func TestScalarField(t *testing.T) {
-	const RANGE = protoreflect.FieldNumber(0x1E - 0x10 + 1)
+	const RANGE = protoreflect.FieldNumber(0x1F - 0x10 + 1)
 	WithEntity(graphtest.File_graphtest_field_proto, "ScalarField", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
 		fields := map[protoreflect.FieldNumber]graph.Field{}
 		for f := range entity.Fields() {

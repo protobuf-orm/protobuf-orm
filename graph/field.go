@@ -17,13 +17,18 @@ type protoField struct {
 	opts *ormpb.FieldOptions
 }
 
+func (f *protoField) isValueType() bool {
+	t := f.Type()
+	return t.IsScalar() || t == ormpb.Type_TYPE_ENUM
+}
+
 func (f *protoField) IsNullable() bool {
 
-	return f.protoProp.IsNullable() || (f.Type().IsScalar() && f.source.HasPresence())
+	return f.protoProp.IsNullable() || (f.isValueType() && f.source.HasPresence())
 }
 
 func (f *protoField) IsOptional() bool {
-	return f.protoProp.IsOptional() || (f.Type().IsScalar() && f.source.HasPresence())
+	return f.protoProp.IsOptional() || (f.isValueType() && f.source.HasPresence())
 }
 
 func (f *protoField) Type() ormpb.Type {
