@@ -17,6 +17,15 @@ type protoField struct {
 	opts *ormpb.FieldOptions
 }
 
+func (f *protoField) IsNullable() bool {
+
+	return f.protoProp.IsNullable() || (f.Type().IsScalar() && f.source.HasPresence())
+}
+
+func (f *protoField) IsOptional() bool {
+	return f.protoProp.IsOptional() || (f.Type().IsScalar() && f.source.HasPresence())
+}
+
 func (f *protoField) Type() ormpb.Type {
 	return f.opts.GetType()
 }
