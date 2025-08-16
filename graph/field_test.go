@@ -9,9 +9,9 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func TestScalarField(t *testing.T) {
+func TestValueField(t *testing.T) {
 	const RANGE = protoreflect.FieldNumber(0x1F - 0x10 + 1)
-	WithEntity(graphtest.File_graphtest_field_proto, "ScalarField", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
+	WithEntity(graphtest.File_graphtest_field_proto, "ValueField", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
 		fields := map[protoreflect.FieldNumber]graph.Field{}
 		for f := range entity.Fields() {
 			fields[f.Number()] = f
@@ -53,7 +53,7 @@ func TestScalarField(t *testing.T) {
 				x.False(f.IsUnique())
 				x.False(f.IsImmutable())
 				x.True(f.IsOptional())
-				x.True(f.IsNullable())
+				x.False(f.IsNullable())
 			}
 		})
 		t.Run("nullable fields", func(t *testing.T) {
@@ -124,8 +124,8 @@ func TestScalarField(t *testing.T) {
 	})(t)
 }
 
-func TestNonScalarField(t *testing.T) {
-	WithEntity(graphtest.File_graphtest_field_proto, "NonScalarField", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
+func TestMessageField(t *testing.T) {
+	WithEntity(graphtest.File_graphtest_field_proto, "MessageField", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
 		fields := map[protoreflect.FieldNumber]graph.Field{}
 		for f := range entity.Fields() {
 			fields[f.Number()] = f
@@ -151,7 +151,7 @@ func TestNonScalarField(t *testing.T) {
 			x.False(f.IsUnique())
 			x.False(f.IsImmutable())
 			x.True(f.IsOptional())
-			x.True(f.IsNullable())
+			x.False(f.IsNullable())
 		})
 		t.Run("nullable fields", func(t *testing.T) {
 			x := require.New(t)
@@ -186,5 +186,55 @@ func TestNonScalarField(t *testing.T) {
 			x.True(f.IsOptional())
 			x.True(f.IsNullable())
 		})
-	})
+	})(t)
+}
+
+func TestMapField(t *testing.T) {
+	const RANGE = protoreflect.FieldNumber(0x12 - 0x10 + 1)
+	WithEntity(graphtest.File_graphtest_field_proto, "MapField", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
+		fields := map[protoreflect.FieldNumber]graph.Field{}
+		for f := range entity.Fields() {
+			fields[f.Number()] = f
+		}
+
+		t.Run("implicit fields", func(t *testing.T) {
+			x := require.New(t)
+			for i := range RANGE {
+				j := i + 0x10
+				f := fields[j]
+				x.False(f.HasDefault())
+				x.False(f.IsList())
+				x.False(f.IsUnique())
+				x.False(f.IsImmutable())
+				x.True(f.IsOptional())
+				x.False(f.IsNullable())
+			}
+		})
+		t.Run("implicit fields with default value", func(t *testing.T) {
+			x := require.New(t)
+			for i := range RANGE {
+				j := i + 0x90
+				f := fields[j]
+				x.True(f.HasDefault())
+				x.False(f.IsList())
+				x.False(f.IsUnique())
+				x.False(f.IsImmutable())
+				x.True(f.IsOptional())
+				x.False(f.IsNullable())
+			}
+		})
+		t.Run("implicit immutable fields", func(t *testing.T) {
+			x := require.New(t)
+			for i := range RANGE {
+				j := i + 0xD0
+				f := fields[j]
+				x.False(f.HasDefault())
+				x.False(f.IsList())
+				x.False(f.IsUnique())
+				x.True(f.IsImmutable())
+				x.True(f.IsOptional())
+				x.False(f.IsNullable())
+			}
+		})
+	})(t)
 }

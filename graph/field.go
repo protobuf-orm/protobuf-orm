@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	"github.com/protobuf-orm/protobuf-orm/ormpb"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 type Field interface {
 	Prop
-	Type() ormpb.Type
 	Shape() Shape
 }
 
@@ -17,22 +17,27 @@ type protoField struct {
 	opts *ormpb.FieldOptions
 }
 
-func (f *protoField) isValueType() bool {
-	t := f.Type()
-	return t.IsScalar() || t == ormpb.Type_TYPE_ENUM
+func (f *protoField) Type() ormpb.Type {
+	return f.opts.GetType()
 }
 
 func (f *protoField) IsNullable() bool {
-
-	return f.protoProp.IsNullable() || (f.isValueType() && f.source.HasPresence())
+	if f.isRepeated() {
+		// There is no way to distinguish between empty and null in proto.
+		return false
+	}
+	return f.opts.GetNullable() ||
+		f.source.HasOptionalKeyword() ||
+		f.source.HasPresence()
 }
 
 func (f *protoField) IsOptional() bool {
-	return f.protoProp.IsOptional() || (f.isValueType() && f.source.HasPresence())
-}
-
-func (f *protoField) Type() ormpb.Type {
-	return f.opts.GetType()
+	if f.isRepeated() {
+		// Empty input for repeated prop is treated as an empty list or map.
+		return true
+	}
+	return f.IsNullable() ||
+		f.HasDefault()
 }
 
 func (f *protoField) Shape() Shape {
@@ -50,18 +55,32 @@ func (f *protoField) Shape() Shape {
 		v := d.MapValue()
 		t := ormpb.TypeFromKind(v.Kind())
 		s := MapShape{K: k, V: t}
-		if t.IsMessage() {
-			s.S = MessageShape{
-				Filepath: v.ParentFile().Path(),
-				FullName: v.FullName(),
-			}
+		if !t.IsScalar() {
+			s.S = shapeMessage(v)
 		}
 
 		return s
 	}
 
+	return shapeMessage(d)
+}
+
+func shapeMessage(fd protoreflect.FieldDescriptor) MessageShape {
+	var d protoreflect.Descriptor
+
+	k := fd.Kind()
+	switch k {
+	case protoreflect.EnumKind:
+		d = fd.Enum()
+	case protoreflect.MessageKind:
+		d = fd.Message()
+	default:
+		panic(fmt.Errorf("%s: unexpected kind of the field: %s", fd.FullName(), k))
+	}
+
 	return MessageShape{
-		Filepath: d.Message().ParentFile().Path(),
-		FullName: d.Message().FullName(),
+		Filepath:   d.ParentFile().Path(),
+		FullName:   d.FullName(),
+		Descriptor: d,
 	}
 }

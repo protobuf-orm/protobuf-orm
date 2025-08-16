@@ -2,20 +2,20 @@ edition = "2023";
 
 package graphtest;
 
-import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
 import "orm.proto";
 
 option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
 
-message ScalarField {
-  enum Level {
-    LEVEL_UNSPECIFIED = 0;
+enum Level {
+  LEVEL_UNSPECIFIED = 0;
 
-    LEVEL_EASY = 1;
-    LEVEL_NORM = 2;
-    LEVEL_HARD = 3;
-  }
+  LEVEL_EASY = 1;
+  LEVEL_NORM = 2;
+  LEVEL_HARD = 3;
+}
 
+message ValueField {
   string id = 1 [(orm.field) = {key: true}];
 
   double implicit_f64 = 0x10 [features.field_presence = IMPLICIT];
@@ -349,14 +349,32 @@ message ScalarField {
   option (orm.message) = {};
 }
 
-message NonScalarField {
+message MessageField {
   string id = 1 [(orm.field) = {key: true}];
 
-  google.protobuf.Timestamp explicit = 0x30;
-  repeated google.protobuf.Timestamp repeated = 0x50;
-  google.protobuf.Timestamp nullable = 0x70 [(orm.field) = {nullable: true}];
-  google.protobuf.Timestamp explicit_with_default = 0xB0 [(orm.field) = {default: ""}];
-  google.protobuf.Timestamp explicit_immutable = 0xF0 [(orm.field) = {immutable: true}];
+  google.protobuf.Struct explicit = 0x30;
+  repeated google.protobuf.Struct repeated = 0x50;
+  google.protobuf.Struct nullable = 0x70 [(orm.field) = {nullable: true}];
+  google.protobuf.Struct explicit_with_default = 0xB0 [(orm.field) = {default: ""}];
+  google.protobuf.Struct explicit_immutable = 0xF0 [(orm.field) = {immutable: true}];
+
+  option (orm.message) = {};
+}
+
+message MapField {
+  string id = 1 [(orm.field) = {key: true}];
+
+  map<string, string> implicit_string = 0x10;
+  map<string, Level> implicit_enum = 0x11;
+  map<string, google.protobuf.Struct> implicit_json = 0x12;
+
+  map<string, string> implicit_string_with_default = 0x90 [(orm.field) = {default: ""}];
+  map<string, Level> implicit_enum_with_default = 0x91 [(orm.field) = {default: ""}];
+  map<string, google.protobuf.Struct> implicit_json_with_default = 0x92 [(orm.field) = {default: ""}];
+
+  map<string, string> implicit_immutable_string = 0xD0 [(orm.field) = {immutable: true}];
+  map<string, Level> implicit_immutable_enum = 0xD1 [(orm.field) = {immutable: true}];
+  map<string, google.protobuf.Struct> implicit_immutable_json = 0xD2 [(orm.field) = {immutable: true}];
 
   option (orm.message) = {};
 }

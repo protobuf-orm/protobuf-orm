@@ -16,6 +16,7 @@ type Prop interface {
 	// Entity which holds this prop.
 	Entity() Entity
 
+	Type() ormpb.Type
 	FullName() protoreflect.FullName
 	Name() string
 	Number() protoreflect.FieldNumber
@@ -90,6 +91,9 @@ func parseProp(ctx context.Context, g *Graph, e *protoEntity, mf protoreflect.Fi
 	if is_field {
 		if of.GetKey() {
 			of.SetImmutable(true)
+			if of.GetNullable() {
+				return nil, errors.New("key field cannot be nullable")
+			}
 		}
 
 		prop.opts = of
@@ -136,6 +140,10 @@ func (p protoProp) Entity() Entity {
 	return p.entity
 }
 
+func (p protoProp) Type() ormpb.Type {
+	panic("not implemented")
+}
+
 func (p protoProp) FullName() protoreflect.FullName {
 	return p.source.FullName()
 }
@@ -160,16 +168,12 @@ func (f protoProp) IsUnique() bool {
 	return f.opts.GetUnique()
 }
 
-func (f protoProp) IsNullable() bool {
-	return f.opts.GetNullable() || f.source.HasOptionalKeyword() || f.IsList()
+func (f protoProp) isRepeated() bool {
+	return f.source.Cardinality() == protoreflect.Repeated
 }
 
 func (f protoProp) IsImmutable() bool {
 	return f.opts.GetImmutable()
-}
-
-func (f protoProp) IsOptional() bool {
-	return f.IsNullable() || f.HasDefault()
 }
 
 type commonOpts interface {

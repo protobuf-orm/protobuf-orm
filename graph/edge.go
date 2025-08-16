@@ -31,6 +31,31 @@ type protoEdge struct {
 	inverse Edge
 }
 
+func (f *protoEdge) Type() ormpb.Type {
+	return ormpb.Type_TYPE_MESSAGE
+}
+
+func (f *protoEdge) IsNullable() bool {
+	if f.isRepeated() {
+		// There is no way to distinguish between empty and null in proto.
+		return false
+	}
+
+	//In proto, even if a message has explicit presence, an edge is not nullable;
+	// it is only nullable when the nullable option is explicitly specified.
+	return f.opts.GetNullable() ||
+		f.source.HasOptionalKeyword()
+}
+
+func (f *protoEdge) IsOptional() bool {
+	if f.isRepeated() {
+		// Empty input for repeated prop is treated as an empty list or map.
+		return true
+	}
+	return f.IsNullable() ||
+		f.HasDefault()
+}
+
 func (e *protoEdge) Target() Entity {
 	return e.target
 }

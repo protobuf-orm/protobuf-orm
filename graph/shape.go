@@ -32,5 +32,15 @@ type MessageShape struct {
 	Filepath string
 	FullName protoreflect.FullName
 
+	// EnumDescriptor or MessageDescriptor
+	// Do not use this field except for resolving import paths
+	// or checking the value type is message or enum.
+	//
+	// I didn't want to expose the descriptor, but I don't know
+	// how to easily resolve the import path to the generated type.
+	// Maybe I could write out all the import paths for Go, C++, Java, ...
+	// but I think that is not scalable.
+	Descriptor protoreflect.Descriptor
+
 	tagShape
 }

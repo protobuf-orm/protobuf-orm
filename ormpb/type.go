@@ -76,6 +76,8 @@ func DeduceType(f protoreflect.FieldDescriptor, want Type) (Type, error) {
 	switch f.Message().FullName() {
 	case "google.protobuf.Timestamp":
 		return Type_TYPE_TIME, nil
+	case "google.protobuf.Struct":
+		return Type_TYPE_JSON, nil
 	}
 
 	return v, nil
@@ -91,6 +93,9 @@ func (t Type) IsScalar() bool {
 
 func (t Type) Decay() Type {
 	switch t {
+	case Type_TYPE_FLOAT,
+		Type_TYPE_DOUBLE:
+		return Type_TYPE_FLOAT
 	case
 		Type_TYPE_INT32,
 		Type_TYPE_INT64,
