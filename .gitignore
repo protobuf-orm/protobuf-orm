@@ -1,1 +1,1 @@
-/internal/examples
+/internal/examples/**/*.pb.go
