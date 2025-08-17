@@ -1,0 +1,13 @@
+edition = "2023";
+
+package graphtest;
+
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
+
+message KeyNotExist {
+  int32 id = 1;
+
+  option (orm.message) = {};
+}

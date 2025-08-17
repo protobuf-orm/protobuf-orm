@@ -1,0 +1,17 @@
+edition = "2023";
+
+package graphtest;
+
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
+
+message KeyNoImmutable {
+  // Key cannot be mutable, so if `immutable` is explicitly set to true, parse fails.
+  int32 id = 1 [(orm.field) = {
+    key: true
+    immutable: false
+  }];
+
+  option (orm.message) = {};
+}

@@ -1,0 +1,22 @@
+edition = "2023";
+
+package graphtest;
+
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
+
+message O2mChildrenMarkedUnique {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  O2mChildrenMarkedUnique parent = 10 [(orm.edge) = {}];
+  repeated O2mChildrenMarkedUnique children = 11 [(orm.edge) = {
+    from: {
+      name: "parent"
+      number: 10
+    }
+    unique: true
+  }];
+
+  option (orm.message) = {};
+}

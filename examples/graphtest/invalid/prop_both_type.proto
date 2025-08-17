@@ -1,0 +1,17 @@
+edition = "2023";
+
+package graphtest;
+
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
+
+message PropBothType {
+  int32 id = 1 [(orm.field) = {key: true}];
+  string alias = 2 [
+    (orm.field) = {},
+    (orm.edge) = {}
+  ];
+
+  option (orm.message) = {};
+}

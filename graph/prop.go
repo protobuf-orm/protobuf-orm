@@ -52,30 +52,25 @@ func parseProp(ctx context.Context, g *Graph, e *protoEntity, mf protoreflect.Fi
 	of := proto.GetExtension(mf.Options(), ormpb.E_Field).(*ormpb.FieldOptions)
 	oe := proto.GetExtension(mf.Options(), ormpb.E_Edge).(*ormpb.EdgeOptions)
 	if of != nil && oe != nil {
-		return nil, errors.New(`only one of "orm.filed" or "orm.edge" can be specified`)
+		return nil, errors.New(`only one of "orm.field" or "orm.edge" can be specified`)
 	}
 	if of.GetDisabled() || oe.GetDisabled() {
 		return nil, nil
 	}
-	if (of == nil && oe == nil) || of.GetType() == ormpb.Type_TYPE_UNSPECIFIED {
+	if (of == nil && oe == nil) || (of != nil && of.GetType() == ormpb.Type_TYPE_UNSPECIFIED) {
 		// No option is specified for the prop
 		// or no type is specified for the field so let's deduce it.
 		t, err := ormpb.DeduceType(mf, of.GetType())
 		if err != nil {
 			return nil, fmt.Errorf("resolve type: %w", err)
 		}
-		if t == ormpb.Type_TYPE_MESSAGE {
-			// Seems that the prop is an edge.
-			if of != nil {
-				// The user set it as message type explicitly.
-				return nil, errors.New("field cannot be a message type (use JSON)")
-			}
-		} else {
-			if of == nil {
-				of = &ormpb.FieldOptions{}
-			}
-			of.SetType(t)
+		if of == nil {
+			of = &ormpb.FieldOptions{}
 		}
+		of.SetType(t)
+	}
+	if of.GetType() == ormpb.Type_TYPE_MESSAGE {
+		return nil, errors.New("field cannot be a message type (use JSON type instead)")
 	}
 
 	prop := protoProp{
@@ -89,13 +84,6 @@ func parseProp(ctx context.Context, g *Graph, e *protoEntity, mf protoreflect.Fi
 	// is_edge := !is_field
 
 	if is_field {
-		if of.GetKey() {
-			of.SetImmutable(true)
-			if of.GetNullable() {
-				return nil, errors.New("key field cannot be nullable")
-			}
-		}
-
 		prop.opts = of
 		return &protoField{
 			protoProp: prop,
@@ -116,13 +104,16 @@ func parseProp(ctx context.Context, g *Graph, e *protoEntity, mf protoreflect.Fi
 			return nil, fmt.Errorf("target entity not found: %s", target_name)
 		}
 
-		// Target entity is
-		//	- defined but not enabled for ORM. -> return error
-		//	- defined in the same file after this entity. -> try to parse the target first.
+		target_, err := parseEntity(ctx, g, mf.Message())
+		if err != nil {
+			return nil, fmt.Errorf("parse target entity: %s%w", target_name, err)
+		}
+		if target_ == nil {
+			return nil, errors.New("target is not an entity")
+		}
 
-		// TODO:
-		// target = parseEntity(...)
-		panic("not implemented")
+		// The target was in the same file.
+		target = target_
 	}
 	if oe.GetUnique() && mf.Cardinality() == protoreflect.Repeated {
 		return nil, fmt.Errorf("edge with repeated cardinality cannot be unique")

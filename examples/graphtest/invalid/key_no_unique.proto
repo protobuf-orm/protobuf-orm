@@ -7,8 +7,7 @@ import "orm.proto";
 option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
 
 message KeyNoUnique {
-  // Key implies uniqueness, so even if `unique` is not explicitly specified,
-  // the key is treated as unique.
+  // Key must be unique, so if `unique` is explicitly set to false, parse fails.
   int32 id = 1 [(orm.field) = {
     key: true
     unique: false

@@ -9,6 +9,7 @@ import (
 
 	"github.com/protobuf-orm/protobuf-orm/internal/iters"
 	"github.com/protobuf-orm/protobuf-orm/ormpb"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -53,8 +54,16 @@ func parseEntity(
 	ctx context.Context,
 	g *Graph,
 	m protoreflect.MessageDescriptor,
-	opts *ormpb.MessageOptions,
 ) (*protoEntity, error) {
+	if v, ok := g.Entities[m.FullName()]; ok {
+		return v.(*protoEntity), nil
+	}
+
+	opts := proto.GetExtension(m.Options(), ormpb.E_Message).(*ormpb.MessageOptions)
+	if opts == nil || opts.GetDisabled() {
+		return nil, nil
+	}
+
 	v := &protoEntity{
 		source: m,
 	}
@@ -65,6 +74,11 @@ func parseEntity(
 	g.Entities[m.FullName()] = v
 
 	errs := []error{}
+	defer func() {
+		if len(errs) > 0 {
+			delete(g.Entities, m.FullName())
+		}
+	}()
 
 	// Parse props.
 	for i := 0; i < m.Fields().Len(); i++ {
@@ -90,17 +104,24 @@ func parseEntity(
 			continue
 		}
 		if v.key != nil {
-			return nil, fmt.Errorf(": there can be only one key, found %s:%d and %s:%d",
-				v.key.FullName().Name(), v.key.Number(),
-				f.FullName().Name(), f.Number(),
+			return nil, fmt.Errorf(": there can be only one key, found %s(%d) and %s(%d)",
+				v.key.Name(), v.key.Number(),
+				f.Name(), f.Number(),
 			)
 		}
 		if f.opts.HasUnique() && !f.opts.GetUnique() {
-			return nil, fmt.Errorf(".%s: key must be unique", f.FullName().Name())
+			return nil, fmt.Errorf(".%s: key must be unique", f.Name())
+		}
+		if f.opts.HasNullable() && f.opts.GetNullable() {
+			return nil, fmt.Errorf(".%s: key cannot be nullable", f.Name())
+		}
+		if f.opts.HasImmutable() && !f.opts.GetImmutable() {
+			return nil, fmt.Errorf(".%s: key must be immutable", f.Name())
 		}
 
 		v.key = f
 		f.opts.SetUnique(true)
+		f.opts.SetImmutable(true)
 	}
 	if v.key == nil {
 		return nil, fmt.Errorf(": no key is defined")

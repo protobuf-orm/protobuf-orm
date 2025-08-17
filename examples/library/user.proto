@@ -29,7 +29,7 @@ message User {
   string metadata = 8 [(orm.field) = {disabled: true}];
 
   // O2M same type
-  User parent = 10;
+  User parent = 10 [(orm.edge) = {}];
   repeated User children = 11 [(orm.edge) = {
     from: {
       name: "parent"

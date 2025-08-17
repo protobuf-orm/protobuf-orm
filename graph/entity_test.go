@@ -33,25 +33,36 @@ func TestEntityEnable(t *testing.T) {
 }
 
 func TestEntityValidity(t *testing.T) {
-	t.Run("key is unique", WithEntity(graphtest.File_graphtest_key_wo_unique_proto, "KeyWoUnique", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
+	t.Run("key is implicitly unique and immutable", WithEntity(graphtest.File_graphtest_invalid_key_wo_unique_proto, "KeyWoUnique", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
 		x.True(entity.Key().IsUnique())
+		x.True(entity.Key().IsImmutable())
 	}))
 	t.Run("key cannot be set as no unique", WithGraph(func(ctx context.Context, x *require.Assertions, g *graph.Graph) {
-		err := graph.Parse(ctx, g, graphtest.File_graphtest_key_no_unique_proto)
+		err := graph.Parse(ctx, g, graphtest.File_graphtest_invalid_key_no_unique_proto)
 		x.Error(err)
-		x.ErrorContains(err, "key must be unique")
+		x.ErrorContains(err, "graphtest.KeyNoUnique.id: key must be unique")
+	}))
+	t.Run("key cannot be set as nullable", WithGraph(func(ctx context.Context, x *require.Assertions, g *graph.Graph) {
+		err := graph.Parse(ctx, g, graphtest.File_graphtest_invalid_key_with_nullable_proto)
+		x.Error(err)
+		x.ErrorContains(err, "graphtest.KeyWithNullable.id: key cannot be nullable")
+	}))
+	t.Run("key cannot be set as mutable", WithGraph(func(ctx context.Context, x *require.Assertions, g *graph.Graph) {
+		err := graph.Parse(ctx, g, graphtest.File_graphtest_invalid_key_no_immutable_proto)
+		x.Error(err)
+		x.ErrorContains(err, "graphtest.KeyNoImmutable.id: key must be immutable")
 	}))
 	t.Run("key is not defined", WithGraph(func(ctx context.Context, x *require.Assertions, g *graph.Graph) {
-		err := graph.Parse(ctx, g, graphtest.File_graphtest_key_no_proto)
+		err := graph.Parse(ctx, g, graphtest.File_graphtest_invalid_key_not_exist_proto)
 		x.Error(err)
-		x.ErrorContains(err, "no key is defined")
+		x.ErrorContains(err, "graphtest.KeyNotExist: no key is defined")
 	}))
 	t.Run("two or more keys are defined", WithGraph(func(ctx context.Context, x *require.Assertions, g *graph.Graph) {
 		err := graph.Parse(ctx, g, graphtest.File_graphtest_key_many_proto)
 		x.Error(err)
-		x.ErrorContains(err, "there can be only one key")
-		x.ErrorContains(err, "id:1")
-		x.ErrorContains(err, "alias:2")
+		x.ErrorContains(err, "graphtest.KeyMany: there can be only one key")
+		x.ErrorContains(err, "id(1)")
+		x.ErrorContains(err, "alias(2)")
 	}))
 }
 

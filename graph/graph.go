@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"maps"
 
-	"github.com/protobuf-orm/protobuf-orm/ormpb"
 	"google.golang.org/protobuf/compiler/protogen"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -39,17 +37,14 @@ func Parse(ctx context.Context, g *Graph, f protoreflect.FileDescriptor) error {
 
 	for i := 0; i < f.Messages().Len(); i++ {
 		m := f.Messages().Get(i)
-		om := proto.GetExtension(m.Options(), ormpb.E_Message).(*ormpb.MessageOptions)
-		if om == nil {
-			continue
-		}
-		if om.GetDisabled() {
-			continue
-		}
 
-		v, err := parseEntity(ctx, g_, m, om)
+		v, err := parseEntity(ctx, g_, m)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("%s%w", m.FullName(), err))
+			continue
+		}
+		if v == nil {
+			// Not an Entity
 			continue
 		}
 
