@@ -51,36 +51,29 @@ func TypeFromKind(k protoreflect.Kind) Type {
 }
 
 // DeduceType deduces proper type for the given field.
-// It returns `want` as-is if the `want` can be a type for the given field.
-// [Type_TYPE_MESSAGE] is returned only and only if the field type is a explicit message type and not known message.
 // Known messages and their deduced types are as follows::
 //
 //	"google.protobuf.Timestamp": Type_TYPE_TIME
-func DeduceType(f protoreflect.FieldDescriptor, want Type) (Type, error) {
-	if want != Type_TYPE_UNSPECIFIED {
-		// TODO: do validation
-		// e.g. if the kind is Bool, the type must be Bool.
-		return want, nil
-	}
-
+func DeduceType(f protoreflect.FieldDescriptor) Type {
 	v := TypeFromKind(f.Kind())
 	if v == Type_TYPE_UNSPECIFIED {
-		return Type_TYPE_UNSPECIFIED, fmt.Errorf("unknown type of proto field: %v", f.Kind().String())
+		panic(fmt.Errorf("unknown type of proto field: %v", f.Kind().String()))
 	}
 	if v != Type_TYPE_MESSAGE {
-		return v, nil
+		return v
 	}
 	if f.IsMap() {
-		return Type_TYPE_JSON, nil
+		return Type_TYPE_JSON
 	}
 	switch f.Message().FullName() {
 	case "google.protobuf.Timestamp":
-		return Type_TYPE_TIME, nil
-	case "google.protobuf.Struct":
-		return Type_TYPE_JSON, nil
+		return Type_TYPE_TIME
+	case "google.protobuf.Struct",
+		"google.protobuf.Value":
+		return Type_TYPE_JSON
+	default:
+		return Type_TYPE_JSON
 	}
-
-	return v, nil
 }
 
 func (t Type) IsMessage() bool {

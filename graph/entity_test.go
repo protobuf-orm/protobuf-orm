@@ -58,7 +58,7 @@ func TestEntityValidity(t *testing.T) {
 		x.ErrorContains(err, "graphtest.KeyNotExist: no key is defined")
 	}))
 	t.Run("two or more keys are defined", WithGraph(func(ctx context.Context, x *require.Assertions, g *graph.Graph) {
-		err := graph.Parse(ctx, g, graphtest.File_graphtest_key_many_proto)
+		err := graph.Parse(ctx, g, graphtest.File_graphtest_invalid_key_many_proto)
 		x.Error(err)
 		x.ErrorContains(err, "graphtest.KeyMany: there can be only one key")
 		x.ErrorContains(err, "id(1)")

@@ -47,11 +47,7 @@ func (f *protoField) Shape() Shape {
 	}
 
 	if d.IsMap() {
-		k, err := ormpb.DeduceType(d.MapKey(), ormpb.Type_TYPE_UNSPECIFIED)
-		if err != nil {
-			panic(fmt.Errorf("map key must be a scalar type: %w", err))
-		}
-
+		k := ormpb.DeduceType(d.MapKey())
 		v := d.MapValue()
 		t := ormpb.TypeFromKind(v.Kind())
 		s := MapShape{K: k, V: t}

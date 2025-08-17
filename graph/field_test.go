@@ -5,9 +5,41 @@ import (
 
 	"github.com/protobuf-orm/protobuf-orm/graph"
 	"github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest"
+	"github.com/protobuf-orm/protobuf-orm/ormpb"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
+
+func TestFieldTypeMapping(t *testing.T) {
+	WithEntity(graphtest.File_graphtest_field_type_mapping_proto, "FieldTypeMapping", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
+		fields := map[string]ormpb.Type{}
+		for f := range entity.Fields() {
+			fields[f.Name()] = f.Type()
+		}
+
+		x.Equal(ormpb.Type_TYPE_DOUBLE, fields["v_f64"])
+		x.Equal(ormpb.Type_TYPE_FLOAT, fields["v_f32"])
+		x.Equal(ormpb.Type_TYPE_INT32, fields["v_i32"])
+		x.Equal(ormpb.Type_TYPE_INT64, fields["v_i64"])
+		x.Equal(ormpb.Type_TYPE_UINT32, fields["v_u32"])
+		x.Equal(ormpb.Type_TYPE_UINT64, fields["v_u64"])
+		x.Equal(ormpb.Type_TYPE_SINT32, fields["v_si32"])
+		x.Equal(ormpb.Type_TYPE_SINT64, fields["v_si64"])
+		x.Equal(ormpb.Type_TYPE_FIXED32, fields["v_fi32"])
+		x.Equal(ormpb.Type_TYPE_FIXED64, fields["v_fi64"])
+		x.Equal(ormpb.Type_TYPE_SFIXED32, fields["v_sfi32"])
+		x.Equal(ormpb.Type_TYPE_SFIXED64, fields["v_sfi64"])
+		x.Equal(ormpb.Type_TYPE_BOOL, fields["v_bool"])
+		x.Equal(ormpb.Type_TYPE_STRING, fields["v_string"])
+		x.Equal(ormpb.Type_TYPE_BYTES, fields["v_bytes"])
+
+		x.Equal(ormpb.Type_TYPE_TIME, fields["wkt_time"])
+		x.Equal(ormpb.Type_TYPE_JSON, fields["wkt_struct"])
+		x.Equal(ormpb.Type_TYPE_JSON, fields["wkt_value"])
+
+		x.Equal(ormpb.Type_TYPE_JSON, fields["v_message"])
+	})(t)
+}
 
 func TestValueField(t *testing.T) {
 	const RANGE = protoreflect.FieldNumber(0x1F - 0x10 + 1)

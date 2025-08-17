@@ -1,0 +1,40 @@
+edition = "2023";
+
+package graphtest;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
+
+message FieldTypeMapping {
+  string id = 1 [(orm.field) = {key: true}];
+
+  double v_f64 = 0x10; // DOUBLE
+  float v_f32 = 0x11; // FLOAT
+  int32 v_i32 = 0x12; // INT32
+  int64 v_i64 = 0x13; // INT64
+  uint32 v_u32 = 0x14; // UINT32
+  uint64 v_u64 = 0x15; // UINT64
+  sint32 v_si32 = 0x16; // SINT32
+  sint64 v_si64 = 0x17; // SINT64
+  fixed32 v_fi32 = 0x18; // FIXED32
+  fixed64 v_fi64 = 0x19; // FIXED64
+  sfixed32 v_sfi32 = 0x1A; // SFIXED32
+  sfixed64 v_sfi64 = 0x1B; // SFIXED64
+  bool v_bool = 0x1C; // BOOL
+  string v_string = 0x1D; // STRING
+  bytes v_bytes = 0x1E; // BYTES
+
+  google.protobuf.Timestamp wkt_time = 0x20; // TIME
+  google.protobuf.Struct wkt_struct = 0x21; // JSON
+  google.protobuf.Value wkt_value = 0x22; // JSON
+
+  message Something {
+    string foo = 1;
+  }
+  Something v_message = 0xFF; // JSON
+
+  option (orm.message) = {};
+}

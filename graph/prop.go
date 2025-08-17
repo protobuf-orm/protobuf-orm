@@ -60,10 +60,7 @@ func parseProp(ctx context.Context, g *Graph, e *protoEntity, mf protoreflect.Fi
 	if (of == nil && oe == nil) || (of != nil && of.GetType() == ormpb.Type_TYPE_UNSPECIFIED) {
 		// No option is specified for the prop
 		// or no type is specified for the field so let's deduce it.
-		t, err := ormpb.DeduceType(mf, of.GetType())
-		if err != nil {
-			return nil, fmt.Errorf("resolve type: %w", err)
-		}
+		t := ormpb.DeduceType(mf)
 		if of == nil {
 			of = &ormpb.FieldOptions{}
 		}
@@ -72,6 +69,9 @@ func parseProp(ctx context.Context, g *Graph, e *protoEntity, mf protoreflect.Fi
 	if of.GetType() == ormpb.Type_TYPE_MESSAGE {
 		return nil, errors.New("field cannot be a message type (use JSON type instead)")
 	}
+
+	// TODO: do validation
+	// e.g. if the kind is Bool, the type must be Bool.
 
 	prop := protoProp{
 		source: mf,
@@ -97,19 +97,12 @@ func parseProp(ctx context.Context, g *Graph, e *protoEntity, mf protoreflect.Fi
 	target_name := mf.Message().FullName()
 	target, ok := g.Entities[target_name]
 	if !ok {
-		if e.source.ParentFile().Path() != mf.ParentFile().Path() {
-			// Reference an entity outside of the current file
-			// so if the parse is conducted in proper order,
-			// the target entity must be in the graph.
-			return nil, fmt.Errorf("target entity not found: %s", target_name)
-		}
-
 		target_, err := parseEntity(ctx, g, mf.Message())
 		if err != nil {
 			return nil, fmt.Errorf("parse target entity: %s%w", target_name, err)
 		}
 		if target_ == nil {
-			return nil, errors.New("target is not an entity")
+			return nil, fmt.Errorf("target is not an entity: %s", target_name)
 		}
 
 		// The target was in the same file.
