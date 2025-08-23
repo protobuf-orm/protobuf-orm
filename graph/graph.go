@@ -67,7 +67,7 @@ func ParseFiles(ctx context.Context, g *Graph, fs []*protogen.File) error {
 
 		d := f.Desc
 		if err := Parse(ctx, g, d); err != nil {
-			return fmt.Errorf("parse %s: %w", d.Path(), err)
+			return fmt.Errorf("%s: %w", d.Path(), err)
 		}
 	}
 

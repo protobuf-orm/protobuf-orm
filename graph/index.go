@@ -8,6 +8,7 @@ import (
 	"slices"
 
 	"github.com/protobuf-orm/protobuf-orm/ormpb"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 type Index interface {
@@ -15,6 +16,7 @@ type Index interface {
 	Entity() Entity
 
 	Name() string
+	Number() protoreflect.FieldNumber
 	Props() iter.Seq[Prop]
 
 	IsUnique() bool
@@ -78,6 +80,10 @@ func (i *protoIndex) Entity() Entity {
 
 func (i *protoIndex) Name() string {
 	return i.opts.GetName()
+}
+
+func (i *protoIndex) Number() protoreflect.FieldNumber {
+	return i.props[0].Number()
 }
 
 func (i *protoIndex) Props() iter.Seq[Prop] {

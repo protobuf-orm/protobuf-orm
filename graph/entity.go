@@ -15,6 +15,7 @@ import (
 
 // Entity is a schema description.
 type Entity interface {
+	Descriptor() protoreflect.MessageDescriptor
 	Path() string
 	Package() string
 
@@ -25,6 +26,7 @@ type Entity interface {
 	Key() Field
 
 	Elems() iter.Seq[Elem]
+	Keys() iter.Seq[Elem]
 	Props() iter.Seq[Prop]
 	Fields() iter.Seq[Field]
 	Edges() iter.Seq[Edge]
@@ -189,6 +191,10 @@ func parseEntity(
 	return v, nil
 }
 
+func (e *protoEntity) Descriptor() protoreflect.MessageDescriptor {
+	return e.source
+}
+
 func (e *protoEntity) Path() string {
 	return e.source.ParentFile().Path()
 }
@@ -228,6 +234,18 @@ func (e *protoEntity) Elems() iter.Seq[Elem] {
 	}
 }
 
+func (e *protoEntity) Keys() iter.Seq[Elem] {
+	return func(yield func(Elem) bool) {
+		for p := range e.Elems() {
+			if p.IsUnique() {
+				if !yield(p) {
+					break
+				}
+			}
+		}
+	}
+}
+
 func (e *protoEntity) Props() iter.Seq[Prop] {
 	return slices.Values(e.props)
 }
@@ -235,7 +253,7 @@ func (e *protoEntity) Props() iter.Seq[Prop] {
 func (e *protoEntity) Fields() iter.Seq[Field] {
 	return func(yield func(Field) bool) {
 		for p := range e.Props() {
-			if v, ok := p.(Field); ok {
+			if v, ok := p.(*protoField); ok {
 				if !yield(v) {
 					break
 				}
@@ -247,7 +265,7 @@ func (e *protoEntity) Fields() iter.Seq[Field] {
 func (e *protoEntity) Edges() iter.Seq[Edge] {
 	return func(yield func(Edge) bool) {
 		for p := range e.Props() {
-			if v, ok := p.(Edge); ok {
+			if v, ok := p.(*protoEdge); ok {
 				if !yield(v) {
 					break
 				}

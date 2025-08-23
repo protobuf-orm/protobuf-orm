@@ -15,6 +15,7 @@ import (
 type Prop interface {
 	// Entity which holds this prop.
 	Entity() Entity
+	Descriptor() protoreflect.FieldDescriptor
 
 	Type() ormpb.Type
 	FullName() protoreflect.FullName
@@ -122,6 +123,10 @@ func parseProp(ctx context.Context, g *Graph, e *protoEntity, mf protoreflect.Fi
 
 func (p protoProp) Entity() Entity {
 	return p.entity
+}
+
+func (p protoProp) Descriptor() protoreflect.FieldDescriptor {
+	return p.source
 }
 
 func (p protoProp) Type() ormpb.Type {

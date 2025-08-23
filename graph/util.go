@@ -10,12 +10,10 @@ func IsCollection(p Prop) bool {
 		return true
 	}
 
-	f, ok := p.(Field)
-	if !ok {
+	if _, ok := p.(Field); !ok {
 		return false
 	}
-
-	if _, ok := f.Shape().(MapShape); ok {
+	if p.Descriptor().IsMap() {
 		return true
 	}
 
