@@ -40,6 +40,7 @@ message FieldOptions {
 
   // TODO: Any?
   string default = 16;
+  VersionOptions version = 17;
 }
 
 message EdgeOptions {
@@ -54,4 +55,8 @@ message EdgeOptions {
 
   // TODO: Any?
   string default = 16;
+}
+
+message VersionOptions {
+  
 }

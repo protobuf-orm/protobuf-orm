@@ -6,6 +6,9 @@ import (
 
 type Field interface {
 	Prop
+
+	IsVersion() bool
+
 	isField()
 }
 
@@ -23,9 +26,13 @@ func (f *protoField) IsNullable() bool {
 		// There is no way to distinguish between empty and null in proto.
 		return false
 	}
-	return f.opts.GetNullable() ||
-		f.source.HasOptionalKeyword() ||
-		f.source.HasPresence()
+	if f.opts.GetNullable() || f.source.HasOptionalKeyword() {
+		return true
+	}
+	if f.source.HasPresence() {
+		return f.Type() != ormpb.Type_TYPE_TIME
+	}
+	return false
 }
 
 func (f *protoField) IsOptional() bool {
@@ -35,6 +42,10 @@ func (f *protoField) IsOptional() bool {
 	}
 	return f.IsNullable() ||
 		f.HasDefault()
+}
+
+func (f *protoField) IsVersion() bool {
+	return f.opts.HasVersion()
 }
 
 func (f *protoField) isField() {}

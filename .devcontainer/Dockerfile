@@ -1,4 +1,4 @@
-FROM ghcr.io/lesomnus/dev-golang:1.24
+FROM ghcr.io/lesomnus/dev-golang:1.25
 
 RUN TEMP=$(mktemp -d); \
 	ARCH=$(uname -m); \

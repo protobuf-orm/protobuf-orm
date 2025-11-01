@@ -23,7 +23,6 @@ type Prop interface {
 	Number() protoreflect.FieldNumber
 
 	HasDefault() bool
-	// GetDefault() any
 
 	IsList() bool
 	IsUnique() bool
@@ -66,6 +65,14 @@ func parseProp(ctx context.Context, g *Graph, e *protoEntity, mf protoreflect.Fi
 			of = &ormpb.FieldOptions{}
 		}
 		of.SetType(t)
+	}
+	if of.HasVersion() {
+		if of.GetUnique() || of.GetNullable() || of.GetImmutable() {
+			return nil, errors.New("version field cannot be unique, nullable or immutable")
+		}
+		if of.GetType() != ormpb.Type_TYPE_TIME {
+			return nil, errors.New("currently, only the time type supports versioning")
+		}
 	}
 	if of.GetType() == ormpb.Type_TYPE_MESSAGE {
 		return nil, errors.New("field cannot be a message type (use JSON type instead)")
@@ -170,4 +177,5 @@ type commonOpts interface {
 	GetNullable() bool
 	GetImmutable() bool
 	HasDefault() bool
+	GetDefault() string
 }

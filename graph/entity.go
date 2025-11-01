@@ -37,6 +37,9 @@ type Entity interface {
 	HasFields() bool
 	HasEdges() bool
 	HasIndexes() bool
+
+	HasVersionField() bool
+	GetVersionField() Field
 }
 
 // Entity parsed from the proto message.
@@ -314,4 +317,18 @@ func (e *protoEntity) HasEdges() (ok bool) {
 
 func (e *protoEntity) HasIndexes() bool {
 	return len(e.indexes) > 0
+}
+
+func (e *protoEntity) HasVersionField() bool {
+	return e.GetVersionField() != nil
+}
+
+func (e *protoEntity) GetVersionField() Field {
+	for f := range e.Fields() {
+		if f.IsVersion() {
+			return f
+		}
+	}
+
+	return nil
 }
