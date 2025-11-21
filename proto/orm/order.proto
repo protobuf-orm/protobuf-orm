@@ -4,6 +4,7 @@ package orm;
 
 import "orm/ref.proto";
 
+option features.field_presence = IMPLICIT;
 option go_package = "github.com/protobuf-orm/protobuf-orm/ormpb";
 
 enum Order {
@@ -23,6 +24,6 @@ enum Order {
 }
 
 message OrderItem {
-  Ref ref = 1;
+  repeated Ref refs = 1;
   Order order = 2;
 }

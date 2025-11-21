@@ -83,13 +83,11 @@ func (x Order) Number() protoreflect.EnumNumber {
 }
 
 type OrderItem struct {
-	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Ref         *Ref                   `protobuf:"bytes,1,opt,name=ref"`
-	xxx_hidden_Order       Order                  `protobuf:"varint,2,opt,name=order,enum=orm.Order"`
-	XXX_raceDetectHookData protoimpl.RaceDetectHookData
-	XXX_presence           [1]uint32
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Refs  *[]*Ref                `protobuf:"bytes,1,rep,name=refs"`
+	xxx_hidden_Order Order                  `protobuf:"varint,2,opt,name=order,enum=orm.Order"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *OrderItem) Reset() {
@@ -117,70 +115,43 @@ func (x *OrderItem) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *OrderItem) GetRef() *Ref {
+func (x *OrderItem) GetRefs() []*Ref {
 	if x != nil {
-		return x.xxx_hidden_Ref
+		if x.xxx_hidden_Refs != nil {
+			return *x.xxx_hidden_Refs
+		}
 	}
 	return nil
 }
 
 func (x *OrderItem) GetOrder() Order {
 	if x != nil {
-		if protoimpl.X.Present(&(x.XXX_presence[0]), 1) {
-			return x.xxx_hidden_Order
-		}
+		return x.xxx_hidden_Order
 	}
 	return Order_ORDER_UNSPECIFIED
 }
 
-func (x *OrderItem) SetRef(v *Ref) {
-	x.xxx_hidden_Ref = v
+func (x *OrderItem) SetRefs(v []*Ref) {
+	x.xxx_hidden_Refs = &v
 }
 
 func (x *OrderItem) SetOrder(v Order) {
 	x.xxx_hidden_Order = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 2)
-}
-
-func (x *OrderItem) HasRef() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_Ref != nil
-}
-
-func (x *OrderItem) HasOrder() bool {
-	if x == nil {
-		return false
-	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
-}
-
-func (x *OrderItem) ClearRef() {
-	x.xxx_hidden_Ref = nil
-}
-
-func (x *OrderItem) ClearOrder() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
-	x.xxx_hidden_Order = Order_ORDER_UNSPECIFIED
 }
 
 type OrderItem_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Ref   *Ref
-	Order *Order
+	Refs  []*Ref
+	Order Order
 }
 
 func (b0 OrderItem_builder) Build() *OrderItem {
 	m0 := &OrderItem{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_Ref = b.Ref
-	if b.Order != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 2)
-		x.xxx_hidden_Order = *b.Order
-	}
+	x.xxx_hidden_Refs = &b.Refs
+	x.xxx_hidden_Order = b.Order
 	return m0
 }
 
@@ -188,9 +159,9 @@ var File_orm_order_proto protoreflect.FileDescriptor
 
 const file_orm_order_proto_rawDesc = "" +
 	"\n" +
-	"\x0form/order.proto\x12\x03orm\x1a\rorm/ref.proto\"I\n" +
-	"\tOrderItem\x12\x1a\n" +
-	"\x03ref\x18\x01 \x01(\v2\b.orm.RefR\x03ref\x12 \n" +
+	"\x0form/order.proto\x12\x03orm\x1a\rorm/ref.proto\"K\n" +
+	"\tOrderItem\x12\x1c\n" +
+	"\x04refs\x18\x01 \x03(\v2\b.orm.RefR\x04refs\x12 \n" +
 	"\x05order\x18\x02 \x01(\x0e2\n" +
 	".orm.OrderR\x05order*\xaf\x01\n" +
 	"\x05Order\x12\x15\n" +
@@ -203,7 +174,7 @@ const file_orm_order_proto_rawDesc = "" +
 	"\rORDER_DESCEND\x10\x02\x12\x0e\n" +
 	"\n" +
 	"ORDER_DESC\x10\x02\x12\r\n" +
-	"\tORDER_DEC\x10\x02\x1a\x02\x10\x01B,Z*github.com/protobuf-orm/protobuf-orm/ormpbb\beditionsp\xe8\a"
+	"\tORDER_DEC\x10\x02\x1a\x02\x10\x01B1Z*github.com/protobuf-orm/protobuf-orm/ormpb\x92\x03\x02\b\x02b\beditionsp\xe8\a"
 
 var file_orm_order_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_orm_order_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
@@ -213,7 +184,7 @@ var file_orm_order_proto_goTypes = []any{
 	(*Ref)(nil),       // 2: orm.Ref
 }
 var file_orm_order_proto_depIdxs = []int32{
-	2, // 0: orm.OrderItem.ref:type_name -> orm.Ref
+	2, // 0: orm.OrderItem.refs:type_name -> orm.Ref
 	0, // 1: orm.OrderItem.order:type_name -> orm.Order
 	2, // [2:2] is the sub-list for method output_type
 	2, // [2:2] is the sub-list for method input_type
