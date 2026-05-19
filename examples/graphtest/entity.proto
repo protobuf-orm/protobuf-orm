@@ -26,3 +26,28 @@ message EntityDisabledExplicit {
   // so the message is not enabled.
   option (orm.message) = {disabled: true};
 }
+
+message EntityCompositeKey {
+  int32 id1 = 1;
+  int32 id2 = 2;
+
+  // Define a composite primary key consisting of `id1` and `id2`.
+  option (orm.message) = {
+    indexes: [
+      {
+        name: "composite_key"
+        key: true
+        refs: [
+          {
+            name: "id1"
+            number: 1
+          },
+          {
+            name: "id2"
+            number: 2
+          }
+        ]
+      }
+    ]
+  };
+}

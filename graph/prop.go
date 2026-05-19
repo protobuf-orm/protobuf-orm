@@ -10,6 +10,11 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
+var (
+	_ Field = (*protoField)(nil)
+	_ Edge  = (*protoEdge)(nil)
+)
+
 // Prop represents a property of an entity.
 // It can be either a [Field] or an [Edge].
 type Prop interface {
@@ -35,6 +40,8 @@ type Prop interface {
 	//  - IsNullable() returns true.
 	//  - HasDefault() returns true.
 	IsOptional() bool
+
+	getOpts() commonOpts
 }
 
 type protoProp struct {
@@ -172,10 +179,20 @@ func (f protoProp) IsImmutable() bool {
 	return f.opts.GetImmutable()
 }
 
+func (f protoProp) getOpts() commonOpts {
+	return f.opts
+}
+
 type commonOpts interface {
+	HasUnique() bool
 	GetUnique() bool
+	SetUnique(bool)
+	HasNullable() bool
 	GetNullable() bool
+	SetNullable(bool)
+	HasImmutable() bool
 	GetImmutable() bool
+	SetImmutable(bool)
 	HasDefault() bool
 	GetDefault() string
 }

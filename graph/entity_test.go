@@ -64,6 +64,13 @@ func TestEntityValidity(t *testing.T) {
 		x.ErrorContains(err, "id(1)")
 		x.ErrorContains(err, "alias(2)")
 	}))
+	t.Run("composite key", WithEntity(graphtest.File_graphtest_entity_proto, "EntityCompositeKey", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
+		k := entity.Key()
+		x.NotNil(k)
+		x.Implements((*graph.Index)(nil), k)
+		x.True(k.IsUnique())
+		x.True(k.IsImmutable())
+	}))
 }
 
 func TestEntityProps(t *testing.T) {

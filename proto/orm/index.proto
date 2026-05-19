@@ -11,6 +11,9 @@ message Index {
   string name = 2;
   repeated Ref refs = 3;
 
+  // Define this index as composite primary key.
+  // It implies unique and immutable.
+  bool key = 5;
   bool unique = 6;
   bool immutable = 8;
 

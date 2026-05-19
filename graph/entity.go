@@ -23,7 +23,7 @@ type Entity interface {
 	Name() string
 
 	Rpcs() RpcMap
-	Key() Field
+	Key() Elem
 
 	Elems() iter.Seq[Elem]
 	Keys() iter.Seq[Elem]
@@ -50,7 +50,8 @@ type protoEntity struct {
 	rpcs *rpcMap
 
 	// Proto field which represents a key.
-	key     *protoField
+	key Elem
+
 	props   []Prop
 	indexes []Index
 }
@@ -103,34 +104,6 @@ func parseEntity(
 	if len(errs) > 0 {
 		return nil, errors.Join(errs...)
 	}
-	for field := range v.Fields() {
-		f := field.(*protoField)
-		if !f.opts.GetKey() {
-			continue
-		}
-		if v.key != nil {
-			return nil, fmt.Errorf(": there can be only one key, found %s(%d) and %s(%d)",
-				v.key.Name(), v.key.Number(),
-				f.Name(), f.Number(),
-			)
-		}
-		if f.opts.HasUnique() && !f.opts.GetUnique() {
-			return nil, fmt.Errorf(".%s: key must be unique", f.Name())
-		}
-		if f.opts.HasNullable() && f.opts.GetNullable() {
-			return nil, fmt.Errorf(".%s: key cannot be nullable", f.Name())
-		}
-		if f.opts.HasImmutable() && !f.opts.GetImmutable() {
-			return nil, fmt.Errorf(".%s: key must be immutable", f.Name())
-		}
-
-		v.key = f
-		f.opts.SetUnique(true)
-		f.opts.SetImmutable(true)
-	}
-	if v.key == nil {
-		return nil, fmt.Errorf(": no key is defined")
-	}
 
 	// Parse indexes.
 	for i, index_opt := range opts.GetIndexes() {
@@ -143,6 +116,69 @@ func parseEntity(
 	}
 	if len(errs) > 0 {
 		return nil, fmt.Errorf(".{indexes}%w", errors.Join(errs...))
+	}
+
+	for field := range v.Fields() {
+		x := field.(*protoField)
+		if !x.opts.GetKey() {
+			continue
+		}
+		if v.key != nil {
+			return nil, fmt.Errorf(": there can be only one key, found %s(%d) and %s(%d)",
+				v.key.Name(), v.key.Number(),
+				x.Name(), x.Number(),
+			)
+		}
+
+		errs := []error{}
+		if x.opts.HasUnique() && !x.opts.GetUnique() {
+			errs = append(errs, fmt.Errorf("key must be unique"))
+		}
+		if err := checkKeyFieldOpts(x.opts); err != nil {
+			errs = append(errs, err...)
+		}
+		if len(errs) > 0 {
+			return nil, fmt.Errorf(".%s: %w", x.Name(), errors.Join(errs...))
+		}
+
+		v.key = x
+		x.opts.SetUnique(true)
+	}
+	for _, index := range v.indexes {
+		x := index.(*protoIndex)
+		if !x.opts.GetKey() {
+			continue
+		}
+		if v.key != nil {
+			return nil, fmt.Errorf(": there can be only one key, found %s(%d) and %s(%d)",
+				v.key.Name(), v.key.Number(),
+				x.Name(), x.Number(),
+			)
+		}
+
+		errs := []error{}
+		if x.opts.HasUnique() && !x.opts.GetUnique() {
+			errs = append(errs, fmt.Errorf("key must be unique"))
+		}
+		if x.opts.HasImmutable() && !x.opts.GetImmutable() {
+			errs = append(errs, fmt.Errorf("key must be immutable"))
+		}
+		for _, prop := range x.props {
+			opts := prop.getOpts()
+			if err := checkKeyFieldOpts(opts); err != nil {
+				errs = append(errs, fmt.Errorf(".%s: %w", prop.Name(), errors.Join(err...)))
+			}
+		}
+		if len(errs) > 0 {
+			return nil, fmt.Errorf(".%s: %w", x.Name(), errors.Join(errs...))
+		}
+
+		v.key = x
+		x.opts.SetUnique(true)
+		x.opts.SetImmutable(true)
+	}
+	if v.key == nil {
+		return nil, fmt.Errorf(": no key is defined")
 	}
 
 	// Find inverse for the edges.
@@ -194,6 +230,24 @@ func parseEntity(
 	return v, nil
 }
 
+func checkKeyFieldOpts(opts commonOpts) []error {
+	errs := []error{}
+
+	if opts.HasNullable() && opts.GetNullable() {
+		errs = append(errs, fmt.Errorf("key cannot be nullable"))
+	}
+	if opts.HasImmutable() && !opts.GetImmutable() {
+		errs = append(errs, fmt.Errorf("key must be immutable"))
+	}
+	if len(errs) > 0 {
+		return errs
+	}
+
+	opts.SetNullable(false)
+	opts.SetImmutable(true)
+	return nil
+}
+
 func (e *protoEntity) Descriptor() protoreflect.MessageDescriptor {
 	return e.source
 }
@@ -218,7 +272,7 @@ func (e *protoEntity) Rpcs() RpcMap {
 	return e.rpcs
 }
 
-func (e *protoEntity) Key() Field {
+func (e *protoEntity) Key() Elem {
 	return e.key
 }
 

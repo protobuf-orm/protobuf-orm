@@ -25,6 +25,7 @@ type Index struct {
 	xxx_hidden_Disabled    bool                   `protobuf:"varint,1,opt,name=disabled"`
 	xxx_hidden_Name        *string                `protobuf:"bytes,2,opt,name=name"`
 	xxx_hidden_Refs        *[]*Ref                `protobuf:"bytes,3,rep,name=refs"`
+	xxx_hidden_Key         bool                   `protobuf:"varint,5,opt,name=key"`
 	xxx_hidden_Unique      bool                   `protobuf:"varint,6,opt,name=unique"`
 	xxx_hidden_Immutable   bool                   `protobuf:"varint,8,opt,name=immutable"`
 	xxx_hidden_Hidden      bool                   `protobuf:"varint,9,opt,name=hidden"`
@@ -85,6 +86,13 @@ func (x *Index) GetRefs() []*Ref {
 	return nil
 }
 
+func (x *Index) GetKey() bool {
+	if x != nil {
+		return x.xxx_hidden_Key
+	}
+	return false
+}
+
 func (x *Index) GetUnique() bool {
 	if x != nil {
 		return x.xxx_hidden_Unique
@@ -108,31 +116,36 @@ func (x *Index) GetHidden() bool {
 
 func (x *Index) SetDisabled(v bool) {
 	x.xxx_hidden_Disabled = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 6)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 7)
 }
 
 func (x *Index) SetName(v string) {
 	x.xxx_hidden_Name = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 6)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 7)
 }
 
 func (x *Index) SetRefs(v []*Ref) {
 	x.xxx_hidden_Refs = &v
 }
 
+func (x *Index) SetKey(v bool) {
+	x.xxx_hidden_Key = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 7)
+}
+
 func (x *Index) SetUnique(v bool) {
 	x.xxx_hidden_Unique = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 6)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 7)
 }
 
 func (x *Index) SetImmutable(v bool) {
 	x.xxx_hidden_Immutable = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 6)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 7)
 }
 
 func (x *Index) SetHidden(v bool) {
 	x.xxx_hidden_Hidden = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 6)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 6, 7)
 }
 
 func (x *Index) HasDisabled() bool {
@@ -149,25 +162,32 @@ func (x *Index) HasName() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
 }
 
-func (x *Index) HasUnique() bool {
+func (x *Index) HasKey() bool {
 	if x == nil {
 		return false
 	}
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 3)
 }
 
-func (x *Index) HasImmutable() bool {
+func (x *Index) HasUnique() bool {
 	if x == nil {
 		return false
 	}
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 4)
 }
 
-func (x *Index) HasHidden() bool {
+func (x *Index) HasImmutable() bool {
 	if x == nil {
 		return false
 	}
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 5)
+}
+
+func (x *Index) HasHidden() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 6)
 }
 
 func (x *Index) ClearDisabled() {
@@ -180,27 +200,35 @@ func (x *Index) ClearName() {
 	x.xxx_hidden_Name = nil
 }
 
-func (x *Index) ClearUnique() {
+func (x *Index) ClearKey() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 3)
+	x.xxx_hidden_Key = false
+}
+
+func (x *Index) ClearUnique() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 4)
 	x.xxx_hidden_Unique = false
 }
 
 func (x *Index) ClearImmutable() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 4)
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 5)
 	x.xxx_hidden_Immutable = false
 }
 
 func (x *Index) ClearHidden() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 5)
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 6)
 	x.xxx_hidden_Hidden = false
 }
 
 type Index_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Disabled  *bool
-	Name      *string
-	Refs      []*Ref
+	Disabled *bool
+	Name     *string
+	Refs     []*Ref
+	// Define this index as composite primary key.
+	// It implies unique and immutable.
+	Key       *bool
 	Unique    *bool
 	Immutable *bool
 	// If the index is unique and this field is true,
@@ -216,24 +244,28 @@ func (b0 Index_builder) Build() *Index {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Disabled != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 6)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 7)
 		x.xxx_hidden_Disabled = *b.Disabled
 	}
 	if b.Name != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 6)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 7)
 		x.xxx_hidden_Name = b.Name
 	}
 	x.xxx_hidden_Refs = &b.Refs
+	if b.Key != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 7)
+		x.xxx_hidden_Key = *b.Key
+	}
 	if b.Unique != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 6)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 7)
 		x.xxx_hidden_Unique = *b.Unique
 	}
 	if b.Immutable != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 6)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 7)
 		x.xxx_hidden_Immutable = *b.Immutable
 	}
 	if b.Hidden != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 6)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 6, 7)
 		x.xxx_hidden_Hidden = *b.Hidden
 	}
 	return m0
@@ -243,11 +275,12 @@ var File_orm_index_proto protoreflect.FileDescriptor
 
 const file_orm_index_proto_rawDesc = "" +
 	"\n" +
-	"\x0form/index.proto\x12\x03orm\x1a\rorm/ref.proto\"\xa3\x01\n" +
+	"\x0form/index.proto\x12\x03orm\x1a\rorm/ref.proto\"\xb5\x01\n" +
 	"\x05Index\x12\x1a\n" +
 	"\bdisabled\x18\x01 \x01(\bR\bdisabled\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1c\n" +
-	"\x04refs\x18\x03 \x03(\v2\b.orm.RefR\x04refs\x12\x16\n" +
+	"\x04refs\x18\x03 \x03(\v2\b.orm.RefR\x04refs\x12\x10\n" +
+	"\x03key\x18\x05 \x01(\bR\x03key\x12\x16\n" +
 	"\x06unique\x18\x06 \x01(\bR\x06unique\x12\x1c\n" +
 	"\timmutable\x18\b \x01(\bR\timmutable\x12\x16\n" +
 	"\x06hidden\x18\t \x01(\bR\x06hiddenB,Z*github.com/protobuf-orm/protobuf-orm/ormpbb\beditionsp\xe8\a"
