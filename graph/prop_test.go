@@ -27,4 +27,9 @@ func TestPropValidity(t *testing.T) {
 		x.Error(err)
 		x.ErrorContains(err, "graphtest.PropEdgeToNonEntity.entity: target is not an entity")
 	}))
+	t.Run("edge on a scalar field is rejected instead of panicking", WithGraph(func(ctx context.Context, x *require.Assertions, g *graph.Graph) {
+		err := graph.Parse(ctx, g, graphtest.File_graphtest_invalid_prop_edge_to_scalar_proto)
+		x.Error(err)
+		x.ErrorContains(err, "graphtest.PropEdgeToScalar.entity: edge must reference a message type")
+	}))
 }

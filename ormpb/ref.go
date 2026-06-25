@@ -7,7 +7,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func RegByNumber(n int) *Ref {
+func RefByNumber(n int) *Ref {
 	return Ref_builder{Number: int32(n)}.Build()
 }
 
@@ -30,7 +30,7 @@ func (r *Ref) Access(desc protoreflect.FieldDescriptors) (protoreflect.FieldDesc
 		}
 
 		name_ := string(field.Name())
-		if name != name_ {
+		if name != "" && name != name_ {
 			return nil, fmt.Errorf("name not matched with the number: expected %d:%q but was %q", number, name_, name)
 		}
 	} else {

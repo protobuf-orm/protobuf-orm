@@ -7,6 +7,7 @@ import (
 	"iter"
 	"slices"
 
+	"github.com/protobuf-orm/protobuf-orm/internal/iters"
 	"github.com/protobuf-orm/protobuf-orm/ormpb"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -43,29 +44,25 @@ func parseIndex(
 		props:  []Prop{},
 	}
 
+	if len(opts.GetRefs()) == 0 {
+		return nil, errors.New(": index must reference at least one prop")
+	}
+
 	errs := []error{}
 	for i, ref := range opts.GetRefs() {
-		ok := false
-		for prop := range e.Props() {
-			number := int32(prop.Number())
-			if number != ref.GetNumber() {
-				continue
-			}
-			if name := string(prop.FullName().Name()); name != ref.GetName() {
-				errs = append(errs, fmt.Errorf("[%d(%s:%d)]: name not matched, ref name was %s", i, ref.GetName(), ref.GetNumber(), name))
-				continue
-			}
-
-			v.props = append(v.props, prop)
-
-			ok = true
-			break
+		prop, ok := iters.Find(e.Props(), func(p Prop) bool {
+			return int32(p.Number()) == ref.GetNumber()
+		})
+		if !ok {
+			errs = append(errs, fmt.Errorf("[%d(%s:%d)]: reference not found", i, ref.GetName(), ref.GetNumber()))
+			continue
 		}
-		if ok {
+		if name := string(prop.FullName().Name()); name != ref.GetName() {
+			errs = append(errs, fmt.Errorf("[%d(%s:%d)]: name not matched, expected %q but referenced prop is named %q", i, ref.GetName(), ref.GetNumber(), ref.GetName(), name))
 			continue
 		}
 
-		errs = append(errs, fmt.Errorf("[%d(%s:%d)]: reference not found", i, ref.GetName(), ref.GetNumber()))
+		v.props = append(v.props, prop)
 	}
 
 	if len(errs) > 0 {

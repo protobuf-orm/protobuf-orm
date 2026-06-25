@@ -1,0 +1,25 @@
+edition = "2023";
+
+package graphtest;
+
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
+
+message IndexRefNameMismatch {
+  int32 id = 1 [(orm.field) = {key: true}];
+  string name = 2 [(orm.field) = {}];
+
+  // The ref points at field number 2, but names it "title" while the prop is
+  // actually named "name".
+  option (orm.message) = {
+    indexes: [
+      {
+        name: "by_title"
+        refs: [
+          {name: "title", number: 2}
+        ]
+      }
+    ]
+  };
+}

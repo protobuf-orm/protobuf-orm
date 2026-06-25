@@ -54,6 +54,16 @@ func parseProp(ctx context.Context, g *Graph, e *protoEntity, mf protoreflect.Fi
 	if of != nil && oe != nil {
 		return nil, errors.New(`only one of "orm.field" or "orm.edge" can be specified`)
 	}
+	// The options returned by proto.GetExtension alias the descriptor's option
+	// message, which must be treated as immutable. Clone them so the
+	// normalization below (e.g. SetUnique/SetImmutable on the key) mutates a
+	// private copy instead of shared, global descriptor state.
+	if of != nil {
+		of = proto.Clone(of).(*ormpb.FieldOptions)
+	}
+	if oe != nil {
+		oe = proto.Clone(oe).(*ormpb.EdgeOptions)
+	}
 	if of.GetDisabled() || oe.GetDisabled() {
 		return nil, nil
 	}
@@ -99,6 +109,13 @@ func parseProp(ctx context.Context, g *Graph, e *protoEntity, mf protoreflect.Fi
 		}, nil
 	} else if oe == nil {
 		oe = &ormpb.EdgeOptions{}
+	}
+
+	// An edge must reference another entity, so the underlying proto field has
+	// to be a message. Guard here so that a scalar field marked as an edge
+	// produces a clear error instead of a nil-pointer panic on mf.Message().
+	if mf.Kind() != protoreflect.MessageKind {
+		return nil, fmt.Errorf("edge must reference a message type (an entity), but field kind is %s", mf.Kind())
 	}
 
 	// Test if the reference is valid entity.

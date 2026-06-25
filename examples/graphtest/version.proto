@@ -1,0 +1,20 @@
+edition = "2023";
+
+package graphtest;
+
+import "google/protobuf/timestamp.proto";
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
+
+message VersionField {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // Optimistic-locking version column. Only the time type currently supports
+  // versioning.
+  google.protobuf.Timestamp updated_at = 2 [(orm.field) = {version: {}}];
+
+  string name = 3 [(orm.field) = {}];
+
+  option (orm.message) = {};
+}

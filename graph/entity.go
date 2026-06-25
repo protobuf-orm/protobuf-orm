@@ -78,12 +78,18 @@ func parseEntity(
 	// - circular reference
 	g.Entities[m.FullName()] = v
 
-	errs := []error{}
+	// The forward declaration above is only valid if this entity parses
+	// successfully. Remove it on every failure path (including the direct
+	// returns in the key/edge validation below) so a failed parse never leaves
+	// a partially-built entity behind for other entities to reference.
+	committed := false
 	defer func() {
-		if len(errs) > 0 {
+		if !committed {
 			delete(g.Entities, m.FullName())
 		}
 	}()
+
+	errs := []error{}
 
 	// Parse props.
 	for i := 0; i < m.Fields().Len(); i++ {
@@ -137,6 +143,7 @@ func parseEntity(
 		index, err := parseIndex(ctx, v, index_opt)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("[%d(%s)]%w", i, index_opt.GetName(), err))
+			continue
 		}
 
 		v.indexes = append(v.indexes, index)
@@ -191,6 +198,7 @@ func parseEntity(
 
 	v.rpcs = parseRpcs(ctx, g, v, opts.GetRpc())
 
+	committed = true
 	return v, nil
 }
 
@@ -202,7 +210,7 @@ func (e *protoEntity) Path() string {
 	return e.source.ParentFile().Path()
 }
 
-func (e protoEntity) Package() string {
+func (e *protoEntity) Package() string {
 	return string(e.source.ParentFile().Package())
 }
 

@@ -40,3 +40,33 @@ func TestRpcEnable(t *testing.T) {
 		x.False(entity.Rpcs().HasErase())
 	}))
 }
+
+func TestRpcMessageNames(t *testing.T) {
+	WithEntity(graphtest.File_graphtest_rpc_proto, "RpcCrud", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
+		rpcs := entity.Rpcs()
+
+		add := rpcs.GetAdd()
+		x.Equal("graphtest.RpcCrudService.Add", string(add.FullName()))
+		x.Equal("graphtest.RpcCrudAddRequest", string(add.Request().FullName()))
+		x.Equal("graphtest.RpcCrud", string(add.Response().FullName()))
+		x.False(add.Request().IsStream())
+		x.False(add.Response().IsStream())
+
+		get := rpcs.GetGet()
+		x.Equal("graphtest.RpcCrudService.Get", string(get.FullName()))
+		x.Equal("graphtest.RpcCrudRef", string(get.Request().FullName()))
+		x.Equal("graphtest.RpcCrud", string(get.Response().FullName()))
+
+		patch := rpcs.GetPatch()
+		x.Equal("graphtest.RpcCrudService.Patch", string(patch.FullName()))
+		x.Equal("graphtest.RpcCrudPatchRequest", string(patch.Request().FullName()))
+		x.Equal("google.protobuf.Empty", string(patch.Response().FullName()))
+
+		erase := rpcs.GetErase()
+		x.Equal("graphtest.RpcCrudService.Erase", string(erase.FullName()))
+		x.Equal("graphtest.RpcCrudRef", string(erase.Request().FullName()))
+		x.Equal("google.protobuf.Empty", string(erase.Response().FullName()))
+
+		x.Same(entity, add.Entity())
+	})(t)
+}

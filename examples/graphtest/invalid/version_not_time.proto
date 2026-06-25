@@ -1,0 +1,16 @@
+edition = "2023";
+
+package graphtest;
+
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
+
+message VersionNotTime {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // Only the time type supports versioning, so an int32 version is invalid.
+  int32 revision = 2 [(orm.field) = {version: {}}];
+
+  option (orm.message) = {};
+}

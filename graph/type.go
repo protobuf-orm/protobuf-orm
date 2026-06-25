@@ -61,9 +61,9 @@ func GoType(d protoreflect.FieldDescriptor, t ormpb.Type, f func(v protogen.GoId
 
 		default:
 			d := d.Message()
-			name, ok := strings.CutPrefix(string(d.FullName()), string(d.ParentFile().Package()))
-			if ok {
-				name = name[1:]
+			name := string(d.FullName())
+			if pkg := string(d.ParentFile().Package()); pkg != "" {
+				name = strings.TrimPrefix(name, pkg+".")
 			}
 			name = strings.ReplaceAll(name, ".", "_")
 
@@ -90,7 +90,7 @@ func GetGoImportPath(d protoreflect.FileDescriptor) (protogen.GoImportPath, bool
 }
 
 func MustGetGoImportPath(d protoreflect.FileDescriptor) protogen.GoImportPath {
-	v, ok := GetGoImportPath(d.ParentFile())
+	v, ok := GetGoImportPath(d)
 	if !ok {
 		panic(fmt.Sprintf("Go import path for %s not found", d.FullName()))
 	}

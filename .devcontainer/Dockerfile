@@ -27,20 +27,3 @@ RUN --mount=type=cache,target=/home/hypnos/.cache/go-build \
 		google.golang.org/protobuf/cmd/protoc-gen-go@v1.36 \
 		google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5 \
 	| xargs -n1 go install
-
-
-
-USER hypnos
-
-RUN mkdir -p \
-		/go/pkg/mod \
-		/home/hypnos/.cache/go-build
-
-# Comment out the following lines if you don't want to use Zsh.
-RUN ZSH_CUSTOM="${HOME}/.oh-my-zsh/custom"; \
-	wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh || true \
-	&& git clone https://github.com/zsh-users/zsh-autosuggestions         "${ZSH_CUSTOM}/plugins/zsh-autosuggestions"     \
-	&& git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "${ZSH_CUSTOM}/plugins/zsh-syntax-highlighting" \
-	&& git clone https://github.com/zsh-users/zsh-completions             "${ZSH_CUSTOM}/plugins/zsh-completions"
-COPY .zshrc /home/hypnos
-ENV SHELL=/bin/zsh
