@@ -85,9 +85,12 @@ func TestTypeDecay(t *testing.T) {
 		{ormpb.Type_TYPE_SFIXED64, ormpb.Type_TYPE_INT},
 		{ormpb.Type_TYPE_UINT64, ormpb.Type_TYPE_UINT},
 		{ormpb.Type_TYPE_FIXED32, ormpb.Type_TYPE_UINT},
-		{ormpb.Type_TYPE_ENUM, ormpb.Type_TYPE_MESSAGE},
+		// An enum is integer-backed, so it decays to INT (not MESSAGE).
+		{ormpb.Type_TYPE_ENUM, ormpb.Type_TYPE_INT},
 		{ormpb.Type_TYPE_TIME, ormpb.Type_TYPE_MESSAGE},
 		{ormpb.Type_TYPE_JSON, ormpb.Type_TYPE_MESSAGE},
+		{ormpb.Type_TYPE_MESSAGE, ormpb.Type_TYPE_MESSAGE},
+		{ormpb.Type_TYPE_GROUP, ormpb.Type_TYPE_MESSAGE},
 		{ormpb.Type_TYPE_UUID, ormpb.Type_TYPE_BYTES},
 		{ormpb.Type_TYPE_BOOL, ormpb.Type_TYPE_BOOL},
 		{ormpb.Type_TYPE_STRING, ormpb.Type_TYPE_STRING},
@@ -103,7 +106,9 @@ func TestTypeIsScalarIsMessage(t *testing.T) {
 	x.True(ormpb.Type_TYPE_STRING.IsScalar())
 	x.True(ormpb.Type_TYPE_INT32.IsScalar())
 	x.True(ormpb.Type_TYPE_UUID.IsScalar()) // UUID decays to bytes.
+	x.True(ormpb.Type_TYPE_ENUM.IsScalar()) // enum decays to int.
 	x.False(ormpb.Type_TYPE_STRING.IsMessage())
+	x.False(ormpb.Type_TYPE_ENUM.IsMessage())
 	x.True(ormpb.Type_TYPE_TIME.IsMessage())
 	x.True(ormpb.Type_TYPE_JSON.IsMessage())
 	x.True(ormpb.Type_TYPE_MESSAGE.IsMessage())

@@ -1,0 +1,20 @@
+edition = "2023";
+
+package graphtest;
+
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
+
+// A doubly-linked node: `next` and `prev` form a one-to-one relation. Declaring
+// `prev` as the back-reference of `next` makes both edges unique.
+message Node {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  Node next = 2 [(orm.edge) = {}];
+  Node prev = 3 [(orm.edge) = {
+    from: {name: "next", number: 2}
+  }];
+
+  option (orm.message) = {};
+}

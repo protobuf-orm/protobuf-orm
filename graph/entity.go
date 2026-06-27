@@ -91,6 +91,14 @@ func parseEntity(
 
 	errs := []error{}
 
+	// Normalizations (e.g. marking the key or an O2O edge unique) are collected
+	// here and applied only once the whole entity has validated successfully.
+	// Some of them mutate options that belong to *other*, already-parsed
+	// entities (the target of an edge), so applying them eagerly would let a
+	// later failure leave those shared entities in a half-updated state. This is
+	// the commit half of a two-phase parse: stage on failure, apply on success.
+	commits := []func(){}
+
 	// Parse props.
 	for i := 0; i < m.Fields().Len(); i++ {
 		mf := m.Fields().Get(i)
@@ -131,8 +139,10 @@ func parseEntity(
 		}
 
 		v.key = f
-		f.opts.SetUnique(true)
-		f.opts.SetImmutable(true)
+		commits = append(commits, func() {
+			f.opts.SetUnique(true)
+			f.opts.SetImmutable(true)
+		})
 	}
 	if v.key == nil {
 		return nil, fmt.Errorf(": no key is defined")
@@ -182,8 +192,10 @@ func parseEntity(
 			}
 			if inverse.source.Cardinality() != protoreflect.Repeated && edge.source.Cardinality() != protoreflect.Repeated {
 				// O2O relation.
-				inverse.opts.SetUnique(true)
-				edge.opts.SetUnique(true)
+				commits = append(commits, func() {
+					inverse.opts.SetUnique(true)
+					edge.opts.SetUnique(true)
+				})
 			}
 
 			edge.inverse = inverse
@@ -197,6 +209,11 @@ func parseEntity(
 	}
 
 	v.rpcs = parseRpcs(ctx, g, v, opts.GetRpc())
+
+	// Validation passed; apply the staged normalizations now (see commits above).
+	for _, commit := range commits {
+		commit()
+	}
 
 	committed = true
 	return v, nil

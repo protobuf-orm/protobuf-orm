@@ -34,6 +34,22 @@ func TestEdgeO2O(t *testing.T) {
 	}))
 }
 
+func TestEdgeO2OBackReference(t *testing.T) {
+	t.Run("from: makes both edges unique", WithEntity(graphtest.File_graphtest_edge_o2o_proto, "Node", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
+		next, ok := iters.Find(entity.Edges(), func(v graph.Edge) bool { return v.FullName().Name() == "next" })
+		x.True(ok)
+		prev, ok := iters.Find(entity.Edges(), func(v graph.Edge) bool { return v.FullName().Name() == "prev" })
+		x.True(ok)
+		// prev declares next as its back-reference, so they are a one-to-one
+		// pair and the normalization (applied on successful parse) marks both
+		// unique.
+		x.True(next.IsUnique())
+		x.True(prev.IsUnique())
+		x.Equal(next.FullName(), prev.Inverse().FullName())
+		x.Equal(prev.FullName(), next.Reverse().FullName())
+	}))
+}
+
 func TestEdgeO2M(t *testing.T) {
 	t.Run("valid", WithEntity(library.File_library_user_proto, "User", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
 		parent, ok := iters.Find(entity.Edges(), func(v graph.Edge) bool { return v.FullName().Name() == "parent" })

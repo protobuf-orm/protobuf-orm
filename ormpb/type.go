@@ -95,7 +95,10 @@ func (t Type) Decay() Type {
 		Type_TYPE_SINT32,
 		Type_TYPE_SINT64,
 		Type_TYPE_SFIXED32,
-		Type_TYPE_SFIXED64:
+		Type_TYPE_SFIXED64,
+		// An enum is represented as a (signed) integer on the wire and in Go, so
+		// it collapses to the integer storage category rather than message.
+		Type_TYPE_ENUM:
 		return Type_TYPE_INT
 	case
 		Type_TYPE_UINT32,
@@ -104,10 +107,10 @@ func (t Type) Decay() Type {
 		Type_TYPE_FIXED64:
 		return Type_TYPE_UINT
 	case
-		Type_TYPE_ENUM,
 		Type_TYPE_MESSAGE,
 		Type_TYPE_JSON,
-		Type_TYPE_TIME:
+		Type_TYPE_TIME,
+		Type_TYPE_GROUP:
 		return Type_TYPE_MESSAGE
 	case
 		Type_TYPE_UUID:
