@@ -26,7 +26,7 @@ func CompileWith(e graph.Entity, p *patchpb.Patch, lim patch.Limits) (*Plan, err
 		return nil, patch.Errf(patch.CodeMissingField, "", "no entity")
 	}
 	if p == nil {
-		return nil, patch.Errf(patch.CodeMissingField, "", "no patch")
+		return nil, ErrNoPatch
 	}
 
 	// Structure before identity, matching the reference engine: a document that

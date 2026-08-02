@@ -7,6 +7,13 @@ import (
 	"github.com/lesomnus/protobuf-patch/patch"
 )
 
+// ErrNoPatch is [Compile] handed no document at all.
+//
+// It is a package-level value rather than an anonymous error so that a server
+// accepting a document in an optional field can report its absence in the same
+// words the compiler would have used, without restating them.
+var ErrNoPatch = patch.Errf(patch.CodeMissingField, "", "no patch")
+
 // ErrUnsupported marks a document this engine declines to compile.
 //
 // It is deliberately NOT a [patch.Error]: nothing about the document is wrong,

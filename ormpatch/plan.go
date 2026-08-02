@@ -31,6 +31,41 @@ func (p *Plan) IsEmpty() bool {
 	return len(p.Tests) == 0 && len(p.Writes) == 0
 }
 
+// WritesTo reports whether the plan already assigns the column of the prop with
+// this field number.
+//
+// A server that stamps a column of its own -- a version field, a modification
+// time -- asks this before stamping, because the document may have written it
+// already. Stamping anyway sends two assignments of one column into the same
+// statement: a duplicate assignment where the backend emits both, and where it
+// folds them, a winner decided by the backend's ordering rather than by the
+// server. It would also make a stored delta unreplayable, since replaying one
+// must reproduce the version it recorded rather than the time of the replay.
+//
+// The number is the prop's proto field number, which is how a plan keys
+// columns -- the same key [Write.Prop.Number] and a backend's column table use.
+// Writes carries at most one entry per column, so the answer is unambiguous.
+func (p *Plan) WritesTo(number protoreflect.FieldNumber) bool {
+	_, ok := p.WriteTo(number)
+	return ok
+}
+
+// WriteTo returns the plan's write for the prop with this field number, and
+// whether there is one. It answers the same question as [Plan.WritesTo] for a
+// caller that needs the operation itself -- to reject a clear of a column it
+// requires, say, or to log what the document did to it.
+func (p *Plan) WriteTo(number protoreflect.FieldNumber) (Write, bool) {
+	if p == nil {
+		return Write{}, false
+	}
+	for _, w := range p.Writes {
+		if w.Prop.Number() == number {
+			return w, true
+		}
+	}
+	return Write{}, false
+}
+
 // Write is one column's new value.
 type Write struct {
 	// Prop is the column. It is a [graph.Edge] exactly when Op is [SetEdge] or
