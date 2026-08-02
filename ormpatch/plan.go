@@ -56,6 +56,12 @@ type Op interface {
 // For a JSON column (a map, a list, or a TYPE_JSON field) this is a wholesale
 // replacement, matching the format's rule that assigning a collection truncates
 // before it fills.
+//
+// A collection Value is DESCRIBED, not owned: compiling has no instance of the
+// entity to allocate into, so it builds one over the descriptor and the result
+// may be backed by dynamicpb. Walk it -- which a backend does anyway to render
+// JSON -- rather than assigning it to a field of a generated message, which
+// would panic on the representation mismatch.
 type SetColumn struct{ Value protoreflect.Value }
 
 // ClearColumn returns the column to absence: NULL where the prop is nullable,
