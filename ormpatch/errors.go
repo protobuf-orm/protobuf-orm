@@ -122,13 +122,42 @@ var DeclaredDivergences = []Divergence{
 			"shape in the plan; test an entry instead",
 	},
 	{
+		Construct: "an index named after the same document changed the list's " +
+			"length",
+		Cause: "entries observe each other in the format, so an index means a " +
+			"position in the list as the entries before it left it -- but the " +
+			"guard that keeps an out-of-range write from landing somewhere else " +
+			"is a predicate, and a predicate reads the row as it was. Reorder " +
+			"the entries so nothing addresses a position after a remove, an " +
+			"append or a clear",
+	},
+	{
+		Construct: "a negative list index",
+		Cause: "it counts from the end, which is a length, and the length is in " +
+			"the row the same statement is writing",
+	},
+	{
+		Construct: "a list index beyond 2^31-1",
+		Cause: "a list is one JSON document in one column and at least one " +
+			"backend parses an array subscript as 32 bits, wrapping rather than " +
+			"missing -- together with its own guard, which wraps identically, so " +
+			"the substitution goes unreported",
+	},
+	{
+		Construct: "comparing a whole map or list against a literal",
+		Cause: "the column holds one serialization of the collection, so the " +
+			"comparison answers whether two spellings match rather than whether " +
+			"two collections do; entry order, key order and each value's " +
+			"encoding all decide it. Test an entry, or lock on a version field",
+	},
+	{
 		Construct: "a span of list elements",
 		Cause: "the positions it names shift as the statement removes or " +
 			"inserts, and one assignment cannot express the rebuild",
 	},
 	{
 		Construct: "oneof_member",
-		Cause: "which member is set is known only to the row",
+		Cause:     "which member is set is known only to the row",
 	},
 	{
 		Construct: "a partial edit of a column the same document already wrote " +

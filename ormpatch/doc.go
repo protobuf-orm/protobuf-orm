@@ -64,6 +64,44 @@
 // Writes to one column are folded, last-wins, which is what re-applying them in
 // order would produce anyway.
 //
+// # Positions in a list
+//
+// The same disagreement takes a sharper form for list indices, because an index
+// is not a name. Removing an element moves everything after it, so an index
+// means a position in the list as the entries before it left it -- while the
+// guard that stops an out-of-range write from landing somewhere else is a
+// predicate, and a predicate reads the row as it was.
+//
+// The edits themselves are fine: they nest inside one assignment and apply in
+// order, which is what the format says. It is only the guard that asks about
+// the wrong state. So the rule is not one index per document:
+//
+//	elem(0).Assign(); elem(2).Assign()     fine, nothing moved
+//	elem(1).Assign(); elem(0).Remove()     fine, the remove is last
+//	elem(0).Remove(); elem(2).Assign()     refused, the index moved
+//	append();         elem(2).Assign()     refused, the index may have moved
+//
+// A negative index is refused for a different reason with the same shape: it
+// counts from the end, and the length is in the row this statement is writing.
+//
+// Reordering a document into a form this engine accepts is a mechanical
+// transform on the document -- assign-then-remove says the same thing as
+// remove-then-assign with the index adjusted -- and it belongs upstream, in
+// whatever produces the document, not here.
+//
+// # Comparing a collection
+//
+// A map or a list is one JSON document in one column. Comparing an entry is a
+// real question and the database answers it. Comparing the WHOLE column against
+// a literal is not: it asks whether two serializations match, and entry order,
+// key order and the spelling of each value all decide that. Two collections
+// that are equal in every sense the format cares about can compare unequal, and
+// a partial edit changes the spelling for good.
+//
+// So it is refused. Test an entry, or lock on a version field. Assigning a
+// whole collection is untouched -- writing a serialization is what the column
+// is for.
+//
 // # Divergence from the reference engine
 //
 // Agreement with patchproto is defined by [patch.CodeOf] and by the resulting

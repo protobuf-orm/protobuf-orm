@@ -6,6 +6,7 @@ import (
 	"github.com/lesomnus/protobuf-patch/patch"
 	"github.com/lesomnus/protobuf-patch/patchpb"
 	"github.com/protobuf-orm/protobuf-orm/graph"
+	"github.com/protobuf-orm/protobuf-orm/ormpb"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -42,9 +43,10 @@ func CompileWith(e graph.Entity, p *patchpb.Patch, lim patch.Limits) (*Plan, err
 	}
 
 	c := &compiler{
-		props:  indexProps(e),
-		writes: map[protoreflect.FieldNumber]*Write{},
-		wrote:  map[protoreflect.FieldNumber]patch.At{},
+		props:   indexProps(e),
+		writes:  map[protoreflect.FieldNumber]*Write{},
+		wrote:   map[protoreflect.FieldNumber]patch.At{},
+		resized: map[protoreflect.FieldNumber]patch.At{},
 	}
 	if err := c.delta(p.GetDelta(), site{kind: siteRoot}, patch.At("delta"), 0); err != nil {
 		return nil, err
@@ -87,6 +89,11 @@ type compiler struct {
 	// wrote records where a column was first written, so that a later read of
 	// it can be refused with the position that made it unreadable.
 	wrote map[protoreflect.FieldNumber]patch.At
+
+	// resized records where a list column's length was last changed, so that a
+	// later entry naming an index in it can be refused with the position that
+	// moved the index.
+	resized map[protoreflect.FieldNumber]patch.At
 }
 
 // maxNest bounds how deep `nest` may chain here. It matches
@@ -190,6 +197,7 @@ func (c *compiler) container(e *patchpb.Entry, s site, at patch.At, depth int) e
 	switch e.WhichKind() {
 	case patchpb.Entry_Remove_case:
 		// Emptying a collection is a whole-column write.
+		c.resize(s.prop, at)
 		return c.write(s.prop, at, EditJSON{Ops: []JSONOp{{Kind: JSONClear, At: at}}})
 
 	case patchpb.Entry_Assign_case:
@@ -416,6 +424,7 @@ func (c *compiler) atColumn(e *patchpb.Entry, sel *patchpb.Selector, at patch.At
 			return c.write(v, at, ClearEdge{})
 		}
 		if graph.IsCollection(v) {
+			c.resize(v, at)
 			return c.write(v, at, EditJSON{Ops: []JSONOp{{Kind: JSONClear, At: at}}})
 		}
 		return c.write(v, at, ClearColumn{})
@@ -503,6 +512,7 @@ func (c *compiler) atMapEntry(e *patchpb.Entry, s site, sel *patchpb.Selector, a
 			if err := c.mutable(s.prop, at); err != nil {
 				return err
 			}
+			c.resize(s.prop, at)
 			return c.write(s.prop, at, EditJSON{Ops: []JSONOp{{Kind: JSONClear, At: at}}})
 		case patchpb.Entry_Test_case:
 			return unsupportedf(at, "testing every entry requires reading them")
@@ -581,6 +591,7 @@ func (c *compiler) atListElem(e *patchpb.Entry, s site, sel *patchpb.Selector, a
 		if err != nil {
 			return err
 		}
+		c.resize(s.prop, at)
 		return c.write(s.prop, at, EditJSON{Ops: []JSONOp{
 			{Kind: JSONAppend, Value: pv, HasValue: true, At: at},
 		}})
@@ -598,6 +609,9 @@ func (c *compiler) atListElem(e *patchpb.Entry, s site, sel *patchpb.Selector, a
 		return patch.Errf(patch.CodeIllegalArm, at, "%s is a list; an index is required", s.prop.Name())
 	}
 	idx := sel.GetKey().GetIndex()
+	if err := c.addressable(s.prop, idx, at); err != nil {
+		return err
+	}
 
 	switch e.WhichKind() {
 	case patchpb.Entry_Test_case:
@@ -616,6 +630,7 @@ func (c *compiler) atListElem(e *patchpb.Entry, s site, sel *patchpb.Selector, a
 			})
 		}
 		if e.WhichKind() == patchpb.Entry_Remove_case {
+			c.resize(s.prop, at)
 			return c.write(s.prop, at, EditJSON{Ops: []JSONOp{
 				{Kind: JSONRemove, Index: idx, HasIndex: true, At: at},
 			}})
@@ -667,6 +682,17 @@ func (c *compiler) test(e *patchpb.Entry, v graph.Prop, key *protoreflect.MapKey
 		return nil
 
 	case patchpb.Test_Value_case:
+		if key == nil && idx == nil && isJSONColumn(v) {
+			return unsupportedf(at,
+				"%s is one JSON document in one column, and comparing it whole "+
+					"asks the database whether two serializations match rather "+
+					"than whether two collections do -- entry order, key order "+
+					"and the spelling of each value all decide it, and none of "+
+					"them is the question. Test an entry, or lock on a version "+
+					"field",
+				v.Name())
+		}
+
 		fd := v.Descriptor()
 		site := patch.SiteField
 		switch {
@@ -793,4 +819,59 @@ func checkOp(p graph.Prop, op Op, at patch.At) error {
 		}
 	}
 	return nil
+}
+
+// maxListIndex is the largest element position this engine will address.
+//
+// It is not the format's limit -- an index is an int64 -- but a list is one
+// JSON document in one column, and the array subscript of at least one backend
+// is parsed as 32 bits and WRAPS rather than failing. A wrapped index writes
+// somewhere the document did not name, and its own miss-guard wraps with it, so
+// nothing reports the substitution. A ceiling no plausible list reaches is
+// cheaper than trusting every backend to notice.
+const maxListIndex = 1<<31 - 1
+
+// addressable refuses an index this engine cannot honor at face value.
+//
+// A negative index counts from the end, which is a length, which lives in the
+// row -- so it is refused here rather than half-resolved. Compiling it anyway
+// and leaving the backend to notice was how it came back as a server fault
+// rather than as something the document asked for.
+func (c *compiler) addressable(v graph.Prop, idx int64, at patch.At) error {
+	if resized, ok := c.resized[v.Number()]; ok {
+		return unsupportedf(at,
+			"%s was resized by %s, so this index no longer means what it did "+
+				"when the document was written; one statement evaluates every "+
+				"position against the row as it was. Order the entries so that "+
+				"nothing addresses an index after the list has grown or shrunk",
+			v.Name(), resized)
+	}
+	if idx < 0 {
+		return unsupportedf(at,
+			"a negative index counts from the end of %s, which is a length the "+
+				"row holds and one statement cannot read while writing it",
+			v.Name())
+	}
+	if idx > maxListIndex {
+		return unsupportedf(at,
+			"%d is beyond the largest element position this engine addresses (%d)",
+			idx, maxListIndex)
+	}
+	return nil
+}
+
+// resize records that a column's length changed here.
+//
+// Only the first one matters: it is the entry that made every later index
+// ambiguous, and naming it is what tells the author where to look.
+func (c *compiler) resize(v graph.Prop, at patch.At) {
+	if _, ok := c.resized[v.Number()]; !ok {
+		c.resized[v.Number()] = at
+	}
+}
+
+// isJSONColumn reports whether a prop is stored as one JSON document rather
+// than as a value the database compares natively.
+func isJSONColumn(v graph.Prop) bool {
+	return graph.IsCollection(v) || v.Type() == ormpb.Type_TYPE_JSON
 }
