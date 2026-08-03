@@ -32,9 +32,20 @@ func CompileWith(e graph.Entity, p *patchpb.Patch, lim patch.Limits) (*Plan, err
 
 	// Structure before identity, matching the reference engine: a document that
 	// is both malformed and misaddressed reports the structural code.
-	if err := patch.ValidateWith(p, lim); err != nil {
+	//
+	// Normalizing is what validates, because it has to read the document to
+	// rewrite it. It moves the entries that change a list's length later so
+	// that every index names a position in the row as it stands, which is the
+	// coordinate system the guards below are evaluated in -- so a document
+	// written in the order its author thought in compiles, where before it was
+	// refused for naming a position the statement had already moved. What it
+	// cannot prove it leaves alone, and [Compile] refuses that as it always
+	// did.
+	q, err := patch.NormalizeWith(p, lim)
+	if err != nil {
 		return nil, err
 	}
+	p = q
 	if t := p.GetMessageType(); t != "" {
 		if protoreflect.FullName(t) != e.FullName() {
 			return nil, patch.Errf(patch.CodeMessageTypeMismatch, "message_type",

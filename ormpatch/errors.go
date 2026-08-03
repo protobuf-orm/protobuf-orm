@@ -127,9 +127,10 @@ var DeclaredDivergences = []Divergence{
 		Cause: "entries observe each other in the format, so an index means a " +
 			"position in the list as the entries before it left it -- but the " +
 			"guard that keeps an out-of-range write from landing somewhere else " +
-			"is a predicate, and a predicate reads the row as it was. Reorder " +
-			"the entries so nothing addresses a position after a remove, an " +
-			"append or a clear",
+			"is a predicate, and a predicate reads the row as it was. Compile " +
+			"reorders what it can through patch.Normalize first, so this is " +
+			"only what that could not prove: an append, a clear, a skipped " +
+			"length change, or two removes whose positions interleave",
 	},
 	{
 		Construct: "a negative list index",

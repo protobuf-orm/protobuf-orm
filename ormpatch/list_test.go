@@ -57,18 +57,38 @@ func TestCompileListIndex(t *testing.T) {
 		x.NoError(err)
 	}))
 
-	t.Run("an index after a remove is refused", WithList(func(x *require.Assertions, e graph.Entity) {
-		_, err := compile(x, e,
+	// This one used to be refused, and is the reason Compile normalizes first.
+	// The document says "drop the first, then overwrite what is now third",
+	// which one statement cannot guard -- but it says the same thing as
+	// "overwrite the fourth, then drop the first", and that one it can.
+	t.Run("an index after a remove is reordered rather than refused", WithList(func(x *require.Assertions, e graph.Entity) {
+		plan, err := compile(x, e,
 			elem(0).Remove(),
 			elem(2).Assign(patch.Int32(9)),
 		)
-		x.ErrorIs(err, ormpatch.ErrUnsupported)
-		x.ErrorContains(err, "resized")
+		x.NoError(err)
+		x.Len(plan.Writes, 1)
+
+		// The write is one column, edited twice, in the order that leaves the
+		// same list behind.
+		ops := plan.Writes[0].Op.(ormpatch.EditJSON).Ops
+		x.Len(ops, 2)
+		x.Equal(ormpatch.JSONSet, ops[0].Kind)
+		x.EqualValues(3, ops[0].Index, "the assign moved up by the element the remove takes")
+		x.Equal(ormpatch.JSONRemove, ops[1].Kind)
+		x.EqualValues(0, ops[1].Index)
 	}))
 
-	t.Run("an index after another remove is refused", WithList(func(x *require.Assertions, e graph.Entity) {
-		_, err := compile(x, e, elem(0).Remove(), elem(1).Remove())
+	// What normalization cannot prove, Compile still refuses. An append lands
+	// at the old length, so the one index it moves is the one only the row
+	// knows.
+	t.Run("an index after a remove it cannot reorder is refused", WithList(func(x *require.Assertions, e graph.Entity) {
+		_, err := compile(x, e,
+			elem(0).Remove(),
+			elem(1).Remove(),
+		)
 		x.ErrorIs(err, ormpatch.ErrUnsupported)
+		x.ErrorContains(err, "resized")
 	}))
 
 	t.Run("an index after an append is refused", WithList(func(x *require.Assertions, e graph.Entity) {

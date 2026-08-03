@@ -76,18 +76,21 @@
 // order, which is what the format says. It is only the guard that asks about
 // the wrong state. So the rule is not one index per document:
 //
+// Most of it is not a real limit, because the rewrite is mechanical:
+// remove-then-assign says the same thing as assign-then-remove with the index
+// adjusted. [patch.Normalize] does that, and Compile runs it first -- so a
+// document written in the order its author thought in compiles, and what is
+// left refused is what normalization could not prove.
+//
 //	elem(0).Assign(); elem(2).Assign()     fine, nothing moved
 //	elem(1).Assign(); elem(0).Remove()     fine, the remove is last
-//	elem(0).Remove(); elem(2).Assign()     refused, the index moved
-//	append();         elem(2).Assign()     refused, the index may have moved
+//	elem(0).Remove(); elem(2).Assign()     reordered, then fine
+//	append();         elem(2).Assign()     refused: an append lands at the old
+//	                                       length, so the one index it moves is
+//	                                       the one only the row knows
 //
-// A negative index is refused for a different reason with the same shape: it
-// counts from the end, and the length is in the row this statement is writing.
-//
-// Reordering a document into a form this engine accepts is a mechanical
-// transform on the document -- assign-then-remove says the same thing as
-// remove-then-assign with the index adjusted -- and it belongs upstream, in
-// whatever produces the document, not here.
+// A negative index is refused for the same reason in its purest form: it counts
+// from the end, and the length is in the row this statement is writing.
 //
 // # Comparing a collection
 //
