@@ -226,17 +226,23 @@ func valueOf(pv protoreflect.Value, fd protoreflect.FieldDescriptor, at patch.At
 	if err != nil {
 		return nil, err
 	}
-	// ValueOf leaves the arm unset for a nil []byte and reports no error.
-	// Checking here fails at the request, where the field has a name, instead
-	// of at Compile, where it looks like a malformed document.
+	// ValueOf encodes what the message holds without judging it, so it can
+	// return a value its own CheckArm refuses. The reachable case is a closed
+	// enum carrying a number the enum does not declare, since the generated Go
+	// type is an int32 that accepts anything. Checking here fails at the
+	// request, where the field has a name, instead of at Compile, where it
+	// reads as a malformed document.
 	if err := patch.CheckArm(v, fd, patch.SiteField, at); err != nil {
 		return nil, err
 	}
 	return v, nil
 }
 
-// guardBytes normalizes a nil []byte, which [patch.ValueOf] would encode as no
-// arm at all.
+// guardBytes normalizes a nil []byte.
+//
+// [patch.ValueOf] does this itself now. It is kept because nothing pins that
+// version: built against an older protobuf-patch, a nil slice leaves the arm
+// unset and the value says nothing at all. It costs one comparison.
 func guardBytes(pv protoreflect.Value, fd protoreflect.FieldDescriptor) protoreflect.Value {
 	if fd.IsList() || fd.IsMap() || fd.Kind() != protoreflect.BytesKind {
 		return pv

@@ -371,11 +371,11 @@ func TestEdge(t *testing.T) {
 		// must not reach the plan: an edge column holds a UUID, and neither a
 		// nil slice nor an empty one is one.
 		//
-		// The nil case is the interesting half. patch.ValueOf writes
-		// b.X = pv.Bytes() and the builder sets the arm only when the slice is
-		// non-nil, so a nil key can become a Value with no arm at all -- which
-		// is refused far away, as a position inside the document. The converter
-		// normalizes it first so the refusal names the prop instead.
+		// Both reach the same refusal, which is the point: nil and empty are
+		// one thing here, and neither is a key. They used to diverge -- a nil
+		// slice left the arm unset and was refused by position inside the
+		// document rather than by name -- which is what the converter's own
+		// normalization still guards against on an older protobuf-patch.
 		p.setRef("parent", "id", protoreflect.ValueOfBytes([]byte("0123456789abcdef")))
 
 		for name, key := range map[string]protoreflect.Value{
