@@ -34,13 +34,16 @@ func (p *Plan) IsEmpty() bool {
 // WritesTo reports whether the plan already assigns the column of the prop with
 // this field number.
 //
-// A server that stamps a column of its own -- a version field, a modification
-// time -- asks this before stamping, because the document may have written it
-// already. Stamping anyway sends two assignments of one column into the same
-// statement: a duplicate assignment where the backend emits both, and where it
-// folds them, a winner decided by the backend's ordering rather than by the
-// server. It would also make a stored delta unreplayable, since replaying one
-// must reproduce the version it recorded rather than the time of the replay.
+// A server that stamps a column of its own -- a modification time, say -- asks
+// this before stamping, because the document may have written it already.
+// Stamping anyway sends two assignments of one column into the same statement:
+// a duplicate assignment where the backend emits both, and where it folds them,
+// a winner decided by the backend's ordering rather than by the server.
+//
+// A version field cannot be one of those columns -- compiling refuses a
+// document that writes it, see [VersionWriteError] -- so for that one the
+// answer is always false. Asking anyway costs a slice walk and is what keeps a
+// server honest if the rule is ever relaxed.
 //
 // The number is the prop's proto field number, which is how a plan keys
 // columns -- the same key [Write.Prop.Number] and a backend's column table use.
