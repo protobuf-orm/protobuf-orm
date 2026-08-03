@@ -77,6 +77,16 @@ func parseProp(ctx context.Context, g *Graph, e *protoEntity, mf protoreflect.Fi
 		of.SetType(t)
 	}
 	if of.HasVersion() {
+		// The key is checked on its own raw bit rather than through the two
+		// below, because parseEntity marks the key unique and immutable in a
+		// commit that runs after every prop is parsed -- long after this. A
+		// field marked both key and version would pass here and then become
+		// exactly the state the next line forbids, with no diagnostic: being
+		// immutable it would drop out of the PatchRequest entirely, and the
+		// lock would disappear from the RPC rather than fail loudly.
+		if of.GetKey() {
+			return nil, errors.New("version field cannot be the key")
+		}
 		if of.GetUnique() || of.GetNullable() || of.GetImmutable() {
 			return nil, errors.New("version field cannot be unique, nullable or immutable")
 		}

@@ -438,6 +438,16 @@ func (c *compiler) atColumn(e *patchpb.Entry, sel *patchpb.Selector, at patch.At
 			c.resize(v, at)
 			return c.write(v, at, EditJSON{Ops: []JSONOp{{Kind: JSONClear, At: at}}})
 		}
+		// The same rule the edge branch above applies, for the same reason. A
+		// column that cannot hold NULL has no absence to return to, and the
+		// zero value is a different request -- one `assign` already spells.
+		// Without this the clear reached the driver as SET col = NULL and came
+		// back as a constraint violation the client could not have predicted.
+		if !v.IsNullable() {
+			return unsupportedf(at,
+				"%s is not nullable, so the column cannot be cleared; assign the value you want instead",
+				v.Name())
+		}
 		return c.write(v, at, ClearColumn{})
 
 	case patchpb.Entry_Assign_case:
@@ -742,9 +752,17 @@ func (c *compiler) testAbsent(e *patchpb.Entry, at patch.At) error {
 }
 
 // mutable refuses a write the schema does not allow.
+//
+// Both refusals live here rather than in the request converter because a
+// document reaches a backend through two doors -- an Apply carries one
+// directly, a Patch converts its request into one -- and a rule enforced at
+// only one of them is not a rule.
 func (c *compiler) mutable(v graph.Prop, at patch.At) error {
 	if v.IsImmutable() {
 		return &ImmutableError{At: at, Prop: v.Name()}
+	}
+	if f, ok := v.(graph.Field); ok && f.IsVersion() {
+		return &VersionWriteError{At: at, Prop: v.Name()}
 	}
 	return nil
 }

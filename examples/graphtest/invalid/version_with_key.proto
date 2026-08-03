@@ -1,0 +1,23 @@
+edition = "2023";
+
+package graphtest;
+
+import "google/protobuf/timestamp.proto";
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
+
+message VersionWithKey {
+  // The key is normalized to unique and immutable, which a version field may
+  // not be. That normalization runs after every prop is parsed, so this has to
+  // be caught on the raw `key` bit -- otherwise it passes and the version
+  // silently drops out of the PatchRequest, taking the lock with it.
+  google.protobuf.Timestamp updated_at = 1 [(orm.field) = {
+    key: true
+    version: {}
+  }];
+
+  string name = 2 [(orm.field) = {}];
+
+  option (orm.message) = {};
+}

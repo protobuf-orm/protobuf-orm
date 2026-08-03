@@ -148,6 +148,27 @@ func parseEntity(
 		return nil, fmt.Errorf(": no key is defined")
 	}
 
+	// At most one version field. [protoEntity.GetVersionField] answers with the
+	// first, and a server stamps only the one it is given, so a second would be
+	// a column frozen at whatever Add wrote while still demanding a value on
+	// every patch -- a lock that always passes its own compare-and-swap.
+	{
+		var ver *protoField
+		for field := range v.Fields() {
+			f := field.(*protoField)
+			if !f.IsVersion() {
+				continue
+			}
+			if ver != nil {
+				return nil, fmt.Errorf(": there can be only one version field, found %s(%d) and %s(%d)",
+					ver.Name(), ver.Number(),
+					f.Name(), f.Number(),
+				)
+			}
+			ver = f
+		}
+	}
+
 	// Parse indexes.
 	for i, index_opt := range opts.GetIndexes() {
 		index, err := parseIndex(ctx, v, index_opt)

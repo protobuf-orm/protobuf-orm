@@ -99,8 +99,11 @@ type Op interface {
 // would panic on the representation mismatch.
 type SetColumn struct{ Value protoreflect.Value }
 
-// ClearColumn returns the column to absence: NULL where the prop is nullable,
-// otherwise its zero -- the same distinction [graph.Prop.IsNullable] draws.
+// ClearColumn returns the column to absence, which is NULL.
+//
+// It is only ever emitted for a nullable prop. Compiling refuses to clear a
+// column that cannot hold NULL rather than substituting the zero value: the
+// zero is a different request, and `assign` already spells it.
 type ClearColumn struct{}
 
 // SetEdge writes an edge's foreign key. Key is a value of the target entity's

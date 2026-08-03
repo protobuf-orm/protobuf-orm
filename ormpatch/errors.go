@@ -161,6 +161,21 @@ var DeclaredDivergences = []Divergence{
 		Cause:     "which member is set is known only to the row",
 	},
 	{
+		Construct: "writing the version field -- assign, remove, or through a " +
+			"PatchRequest's <name>_force carrying a value",
+		Cause: "the version is the token every client's compare-and-swap is " +
+			"measured against, so the server stamps it; a client that could " +
+			"choose it could re-write the value it just read, leaving the row " +
+			"changed and the token unchanged, and a concurrent writer's stale " +
+			"test would still hold. Test the version instead -- that is the lock",
+	},
+	{
+		Construct: "clearing a column that is not nullable",
+		Cause: "a column that cannot hold NULL has no absence to return to. " +
+			"The zero value is a different request and `assign` already spells " +
+			"it, so clearing is refused rather than silently redirected",
+	},
+	{
 		Construct: "a partial edit of a column the same document already wrote " +
 			"whole",
 		Cause: "one statement assigns a column once, and a modifier on a column " +
@@ -196,6 +211,29 @@ type ImmutableError struct {
 
 func (e *ImmutableError) Error() string {
 	return fmt.Sprintf("%s: %s is immutable", e.At, e.Prop)
+}
+
+// VersionWriteError is a document that writes the version field.
+//
+// The version is the token every other client's compare-and-swap is measured
+// against, so it is the server's to stamp and nobody else's to choose. A client
+// that could pick it could pick the value it just read: the row would change
+// while the token did not, and a concurrent writer's `test` -- already stale --
+// would still hold and overwrite. That is the lost update the field exists to
+// prevent, so allowing the write would have made the feature a decoration.
+//
+// A `test` on the version is untouched, and is the whole point of it.
+//
+// Like [ImmutableError] this is the ORM's own rule rather than a format
+// violation, so it carries no [patch.Code]; the reference engine would apply
+// the write. It is the caller's mistake all the same.
+type VersionWriteError struct {
+	At   patch.At
+	Prop string
+}
+
+func (e *VersionWriteError) Error() string {
+	return fmt.Sprintf("%s: %s is the version, which the server stamps: a patch may test it but not write it", e.At, e.Prop)
 }
 
 // UUIDLen is how many bytes a value of [ormpb.Type_TYPE_UUID] has.

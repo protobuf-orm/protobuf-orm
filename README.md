@@ -283,13 +283,34 @@ messages.
 ### Version fields (optimistic locking)
 
 A field marked `version` is the optimistic-locking column. It must be a time
-type and cannot be `unique`, `nullable`, or `immutable`.
+type, there can be at most one per entity, and it cannot be the `key`, nor
+`unique`, `nullable`, or `immutable`.
 
 ```proto
 google.protobuf.Timestamp updated_at = 2 [(orm.field) = {version: {}}];
 ```
 
 Query it via `entity.HasVersionField()` / `entity.GetVersionField()`.
+
+**The version is the server's to stamp.** A patch may *test* it -- that test is
+the lock, and it compiles to a `WHERE` predicate, so the update stays a single
+compare-and-swap statement -- but it may not *write* it. `assign` and `remove`
+on a version field are both refused with `ormpatch.VersionWriteError`, whether
+they arrive in an Apply document or through a PatchRequest's `<name>_force`
+carrying a value.
+
+That refusal is what makes the lock mean anything. The version is the token
+every client's compare-and-swap is measured against, so a client that could
+choose it could re-write the value it had just read: the row would change while
+the token stood still, and a concurrent writer's already-stale test would still
+hold, and overwrite. The lost update the field exists to prevent would be back,
+reported as success.
+
+A `<name>_force` on its own -- with no value -- is still how a caller declines
+the lock for its own write, and the server stamps as usual. Declining is legal;
+the reason the field is mandatory in a PatchRequest is that an unset field is
+the default state of a struct literal, so silence cannot be told apart from
+having forgotten. It is not that every write must hold a lock.
 
 ### RPCs
 

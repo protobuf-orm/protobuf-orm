@@ -239,21 +239,49 @@ func TestVersion(t *testing.T) {
 		p.x.ErrorContains(err, "version not given: updated_at")
 	}))
 
-	t.Run("force with a value assigns it and tests nothing", withVersioned(func(p *probe) {
+	// This cell used to store the version the request carried. It was the one
+	// way a client could choose the token every other client's compare-and-swap
+	// is measured against, and choosing the value it had just read left the row
+	// changed while the token stood still -- so a concurrent writer's
+	// already-stale test still held, and overwrote. Now it is refused.
+	t.Run("force with a value is refused", withVersioned(func(p *probe) {
 		p.set("updated_at_force", protoreflect.ValueOfBool(true))
 		p.setTime("updated_at", 999, 0)
 
-		plan := p.run(nil)
-		p.x.Empty(plan.Tests, "force means no precondition")
-		p.x.Len(plan.Writes, 1)
-		p.x.Equal("updated_at", plan.Writes[0].Prop.Name())
+		_, err := p.convert(nil)
 
-		op, ok := plan.Writes[0].Op.(ormpatch.SetColumn)
-		p.x.True(ok, "op is %T", plan.Writes[0].Op)
-		ts := op.Value.Message()
-		p.x.EqualValues(999, ts.Get(ts.Descriptor().Fields().ByName("seconds")).Int())
-		_, wrote := findWrite(plan, "updated_at")
-		p.x.True(wrote)
+		verr := &ormpatch.VersionWriteError{}
+		p.x.ErrorAs(err, &verr)
+		p.x.Equal("updated_at", verr.Prop)
+	}))
+
+	// The same refusal through the other door. An Apply carries its document
+	// straight to Compile without ever passing the converter, so a rule that
+	// lived only in the converter would be one RPC away from nothing.
+	t.Run("a document that writes the version is refused", withVersioned(func(p *probe) {
+		_, err := compile(p.x, p.e, patch.Target(patch.Name("updated_at")).
+			Assign(patch.Msg(patch.F(patch.Name("seconds"), patch.Int64(999)))))
+
+		verr := &ormpatch.VersionWriteError{}
+		p.x.ErrorAs(err, &verr)
+		p.x.Equal("updated_at", verr.Prop)
+	}))
+
+	t.Run("a document that clears the version is refused", withVersioned(func(p *probe) {
+		_, err := compile(p.x, p.e, patch.Target(patch.Name("updated_at")).Remove())
+
+		verr := &ormpatch.VersionWriteError{}
+		p.x.ErrorAs(err, &verr)
+	}))
+
+	// A test is untouched -- it is the whole point of the field.
+	t.Run("a document that tests the version compiles", withVersioned(func(p *probe) {
+		plan, err := compile(p.x, p.e, patch.Target(patch.Name("updated_at")).
+			Test(patch.Msg(patch.F(patch.Name("seconds"), patch.Int64(999)))))
+
+		p.x.NoError(err)
+		p.x.Len(plan.Tests, 1)
+		p.x.Empty(plan.Writes)
 	}))
 
 	t.Run("force without a value neither tests nor writes the version", withVersioned(func(p *probe) {

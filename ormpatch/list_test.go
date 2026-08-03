@@ -121,6 +121,34 @@ func TestCompileListIndex(t *testing.T) {
 	}))
 }
 
+// A column that cannot hold NULL has no absence to return to.
+//
+// This used to compile, render as SET col = NULL, and come back from the driver
+// as a constraint violation -- an error no client could have predicted from its
+// own document, arriving as an untyped code.
+func TestCompileClearColumn(t *testing.T) {
+	t.Run("clearing a nullable column is fine", WithList(func(x *require.Assertions, e graph.Entity) {
+		plan, err := compile(x, e, patch.Target(patch.Name("nullable_string")).Remove())
+		x.NoError(err)
+		x.Len(plan.Writes, 1)
+		x.IsType(ormpatch.ClearColumn{}, plan.Writes[0].Op)
+	}))
+
+	t.Run("clearing a column that is not nullable is refused", WithList(func(x *require.Assertions, e graph.Entity) {
+		_, err := compile(x, e, patch.Target(patch.Name("implicit_string")).Remove())
+		x.ErrorIs(err, ormpatch.ErrUnsupported)
+		x.ErrorContains(err, "not nullable")
+	}))
+
+	// The value it would have written is still reachable; it just has to be
+	// asked for, because it is a different request.
+	t.Run("assigning the zero is still fine", WithList(func(x *require.Assertions, e graph.Entity) {
+		plan, err := compile(x, e, patch.Target(patch.Name("implicit_string")).Assign(patch.Str("")))
+		x.NoError(err)
+		x.Len(plan.Writes, 1)
+	}))
+}
+
 func TestCompileListBounds(t *testing.T) {
 	t.Run("a negative index is refused", WithList(func(x *require.Assertions, e graph.Entity) {
 		_, err := compile(x, e, elem(-1).Assign(patch.Int32(9)))

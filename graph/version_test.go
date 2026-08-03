@@ -33,4 +33,21 @@ func TestVersionField(t *testing.T) {
 		x.Error(err)
 		x.ErrorContains(err, "version field cannot be unique, nullable or immutable")
 	}))
+
+	// The key is marked unique and immutable by a normalization that runs after
+	// every prop is parsed, so the check above cannot see it and this one has to
+	// read the raw bit. Left open, the version became immutable, dropped out of
+	// the PatchRequest -- which omits immutable props -- and the lock vanished
+	// from the RPC without a word.
+	t.Run("version field cannot be the key", WithGraph(func(ctx context.Context, x *require.Assertions, g *graph.Graph) {
+		err := graph.Parse(ctx, g, graphtest.File_graphtest_invalid_version_with_key_proto)
+		x.Error(err)
+		x.ErrorContains(err, "version field cannot be the key")
+	}))
+
+	t.Run("there can be only one version field", WithGraph(func(ctx context.Context, x *require.Assertions, g *graph.Graph) {
+		err := graph.Parse(ctx, g, graphtest.File_graphtest_invalid_version_many_proto)
+		x.Error(err)
+		x.ErrorContains(err, "there can be only one version field")
+	}))
 }

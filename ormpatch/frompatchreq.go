@@ -120,12 +120,13 @@ func FromPatchRequest(e graph.Entity, req protoreflect.Message, resolve EdgeReso
 				entries = append(entries, entryTest(p, v))
 
 			case set:
-				// Forced with a value: the client is choosing the version.
-				v, err := requestValue(req, vfd, p.Descriptor(), at)
-				if err != nil {
-					return nil, err
-				}
-				entries = append(entries, entryAssign(p, v))
+				// Forced AND carrying a value used to mean "store this
+				// version", which handed the client the token everyone else's
+				// compare-and-swap is measured against. See [VersionWriteError]
+				// for why that could not stay. Refusing rather than ignoring
+				// the value keeps a caller who meant one of the other three
+				// cells from silently getting a fourth.
+				return nil, &VersionWriteError{At: at, Prop: f.Name()}
 
 				// case flag && !set: neither asserted nor written. The server
 				// stamps the column because the document does not.
