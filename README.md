@@ -312,6 +312,19 @@ the reason the field is mandatory in a PatchRequest is that an unset field is
 the default state of a struct literal, so silence cannot be told apart from
 having forgotten. It is not that every write must hold a lock.
 
+**The lock covers updates, not deletes.** `Erase` takes the entity's `Ref` and
+nothing else, so there is no way to say "delete only if the row is still at
+version V" and no plan to add one: a delete is normally meant absolutely --
+delete this user -- where an update is meant relative to what the caller read.
+Requiring a precondition on every delete would put a flag on calls that do not
+want one, and a flag everyone always sets protects nobody.
+
+The consequence is worth stating plainly, because it is the one place a version
+field does not help: a client that read a row, missed a concurrent update to
+it, and then erases it, destroys that update and is told the delete succeeded.
+Where that matters, the row's own lifecycle has to carry it -- a status column
+patched to `deleted` under the lock is a delete this feature does cover.
+
 ### RPCs
 
 `orm.message.rpc` generates CRUD service operations. `crud: true` enables all
