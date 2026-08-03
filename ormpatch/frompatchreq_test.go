@@ -27,16 +27,16 @@ func TestRequestLayout(t *testing.T) {
 		t.Log("UserPatchRequest:" + p.layout())
 
 		want := map[string]protoreflect.FieldNumber{
-			"ref":        1, // == Key().Number()
-			"alias":      7, // N=4
-			"alias_null": 8,
-			"name":       9, // N=5
-			"name_null":  10,
-			"desc":       11, // N=6
-			"desc_null":  12,
-			"labels":     13, // N=7, map: no companion
-			"parent":     19, // N=10, edge: not nullable, no companion
-			"children":   21, // N=11, repeated edge
+			"ref":        1, // pinned, independent of the key
+			"alias":      8, // N=4
+			"alias_null": 9,
+			"name":       10, // N=5
+			"name_null":  11,
+			"desc":       12, // N=6
+			"desc_null":  13,
+			"labels":     14, // N=7, map: no companion
+			"parent":     20, // N=10, edge: not nullable, no companion
+			"children":   22, // N=11, repeated edge
 		}
 		for name, num := range want {
 			fd := p.fd(name)
@@ -55,10 +55,10 @@ func TestRequestLayout(t *testing.T) {
 		t.Log("VersionFieldPatchRequest:" + p.layout())
 
 		p.x.EqualValues(1, p.fd("ref").Number())
-		p.x.EqualValues(3, p.fd("updated_at").Number()) // N=2
-		p.x.EqualValues(4, p.fd("updated_at_force").Number())
-		p.x.EqualValues(5, p.fd("name").Number()) // N=3
-		p.x.EqualValues(6, p.fd("name_null").Number())
+		p.x.EqualValues(4, p.fd("updated_at").Number()) // N=2
+		p.x.EqualValues(5, p.fd("updated_at_force").Number())
+		p.x.EqualValues(6, p.fd("name").Number()) // N=3
+		p.x.EqualValues(7, p.fd("name_null").Number())
 	}))
 
 	t.Run("no two slots collide", withUser(func(p *probe) {
@@ -73,27 +73,26 @@ func TestRequestLayout(t *testing.T) {
 		}
 	}))
 
-	// The convention is safe only because the key is number 1 in every
-	// fixture, and nothing in protobuf-orm enforces that. `ref` borrows
-	// Key().Number(), and an odd key K collides with the value slot of the
-	// mutable prop numbered (K+1)/2.
-	t.Run("a key that is not number 1 collides", func(t *testing.T) {
+	// `ref` is pinned at 1 and no prop can reach it, so the key's own number
+	// stops mattering. Under the previous layout this entity could not have a
+	// request at all.
+	t.Run("a key that is not number 1 builds anyway", func(t *testing.T) {
 		x := require.New(t)
 
 		e := hazardEntity(x, "KeyAtThree", []*descriptorpb.FieldDescriptorProto{
-			// N=2 -> value slot 2*2-1 = 3, which is where `ref` lives.
 			ormField("name", 2, descriptorpb.FieldDescriptorProto_TYPE_STRING, nil),
 			ormField("id", 3, descriptorpb.FieldDescriptorProto_TYPE_STRING,
 				ormpb.FieldOptions_builder{Key: proto.Bool(true)}.Build()),
 		})
 		x.EqualValues(3, e.Key().Number())
 
-		_, err := buildPatchRequest(e)
-		x.Error(err, "two fields on number 3 must not build")
-		t.Log("collision: " + err.Error())
+		md, err := buildPatchRequest(e)
+		x.NoError(err)
+		x.EqualValues(1, md.Fields().ByName("ref").Number())
+		x.EqualValues(4, md.Fields().ByName("name").Number())
 	})
 
-	t.Run("a key at 1 with the same props is fine", func(t *testing.T) {
+	t.Run("a key at 1 puts the props in the same slots", func(t *testing.T) {
 		x := require.New(t)
 
 		e := hazardEntity(x, "KeyAtOne", []*descriptorpb.FieldDescriptorProto{
@@ -106,7 +105,7 @@ func TestRequestLayout(t *testing.T) {
 		md, err := buildPatchRequest(e)
 		x.NoError(err)
 		x.EqualValues(1, md.Fields().ByName("ref").Number())
-		x.EqualValues(3, md.Fields().ByName("name").Number())
+		x.EqualValues(4, md.Fields().ByName("name").Number())
 	})
 }
 

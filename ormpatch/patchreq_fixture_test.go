@@ -66,25 +66,20 @@ func buildPatchRequest(e graph.Entity) (protoreflect.MessageDescriptor, error) {
 
 	msg := &descriptorpb.DescriptorProto{Name: proto.String(msgName)}
 
-	// `ref` borrows the key's number. Safe only because the key is always
-	// immutable (so the prop loop never re-emits it) AND is number 1 in every
-	// fixture -- for a key at 3 the odd slot 2*2-1 would land on it.
+	// Every number here comes from graph, the same place protoc-gen-orm-service
+	// takes it from. Re-deriving the arithmetic would make this fixture agree
+	// with the converter by coincidence rather than by construction, and it is
+	// supposed to stand in for the real generator.
 	msg.Field = append(msg.Field, &descriptorpb.FieldDescriptorProto{
 		Name:     proto.String("ref"),
-		Number:   proto.Int32(int32(e.Key().Number())),
+		Number:   proto.Int32(int32(graph.PatchRefNumber(e))),
 		Label:    descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
 		Type:     descriptorpb.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
 		TypeName: proto.String(refFor(e)),
 	})
 
-	for p := range e.Props() {
-		if p.IsImmutable() {
-			continue
-		}
-		n := int32(p.Number())
-
+	for p := range graph.PatchProps(e) {
 		var fp *descriptorpb.FieldDescriptorProto
-		isVersion := false
 		switch p := p.(type) {
 		case graph.Edge:
 			label := descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL
@@ -99,7 +94,6 @@ func buildPatchRequest(e graph.Entity) (protoreflect.MessageDescriptor, error) {
 			}
 
 		case graph.Field:
-			isVersion = p.IsVersion()
 			fd := p.Descriptor()
 			addDep(fd)
 			fp = protodesc.ToFieldDescriptorProto(fd)
@@ -127,14 +121,11 @@ func buildPatchRequest(e graph.Entity) (protoreflect.MessageDescriptor, error) {
 			return nil, fmt.Errorf("unknown prop type %T", p)
 		}
 
-		fp.Number = proto.Int32(n*2 - 1)
+		fp.Number = proto.Int32(int32(graph.PatchValueNumber(p)))
 		msg.Field = append(msg.Field, fp)
 
-		switch {
-		case isVersion:
-			msg.Field = append(msg.Field, boolField(p.Name()+"_force", n*2))
-		case p.IsNullable():
-			msg.Field = append(msg.Field, boolField(p.Name()+"_null", n*2))
+		if name := graph.PatchFlagName(p); name != "" {
+			msg.Field = append(msg.Field, boolField(name, int32(graph.PatchFlagNumber(p))))
 		}
 	}
 

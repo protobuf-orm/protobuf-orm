@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
@@ -27,14 +28,14 @@ func TestPatchSlots(t *testing.T) {
 		// map and an empty one are the same request.
 		alias := props["alias"]
 		x.NotNil(alias)
-		x.EqualValues(7, graph.PatchValueNumber(alias))
-		x.EqualValues(8, graph.PatchFlagNumber(alias))
+		x.EqualValues(8, graph.PatchValueNumber(alias))
+		x.EqualValues(9, graph.PatchFlagNumber(alias))
 		x.Equal(graph.PatchFlagNull, graph.PatchFlagOf(alias))
 		x.Equal("alias_null", graph.PatchFlagName(alias))
 
 		labels := props["labels"]
 		x.NotNil(labels)
-		x.EqualValues(13, graph.PatchValueNumber(labels))
+		x.EqualValues(14, graph.PatchValueNumber(labels))
 		x.Equal(graph.PatchFlagNone, graph.PatchFlagOf(labels))
 		x.Empty(graph.PatchFlagName(labels))
 	}))
@@ -44,8 +45,8 @@ func TestPatchSlots(t *testing.T) {
 		x.NotNil(v)
 		x.Equal(graph.PatchFlagForce, graph.PatchFlagOf(v))
 		x.Equal("updated_at_force", graph.PatchFlagName(v))
-		x.EqualValues(3, graph.PatchValueNumber(v))
-		x.EqualValues(4, graph.PatchFlagNumber(v))
+		x.EqualValues(4, graph.PatchValueNumber(v))
+		x.EqualValues(5, graph.PatchFlagNumber(v))
 	}))
 
 	// An immutable prop has no request field at all: there is no shape for
@@ -69,9 +70,13 @@ func TestPatchSlots(t *testing.T) {
 		x.Equal(patchable, got)
 	}))
 
-	t.Run("ref borrows the key's number", WithEntity(library.File_library_user_proto, "User", func(x *require.Assertions, g *graph.Graph, e graph.Entity) {
-		x.Equal(e.Key().Number(), graph.PatchRefNumber(e))
-		x.True(e.Key().IsImmutable(), "the key must be immutable for ref to borrow its slot")
+	// ref does not depend on the key. Prop numbers start at 1 and the lowest
+	// slot a prop can claim is 2, so slot 1 is free whatever the schema says.
+	t.Run("ref is 1 and no prop can reach it", WithEntity(library.File_library_user_proto, "User", func(x *require.Assertions, g *graph.Graph, e graph.Entity) {
+		x.EqualValues(1, graph.PatchRefNumber(e))
+		for p := range graph.PatchProps(e) {
+			x.Greater(graph.PatchValueNumber(p), protoreflect.FieldNumber(1), "%q reaches ref", p.Name())
+		}
 	}))
 }
 
@@ -105,14 +110,14 @@ func TestPatchLayout(t *testing.T) {
 		x.Len(got, want+1, "ref plus every value and companion")
 	}))
 
-	// The arithmetic is injective across props, so the only way two slots can
-	// meet is through `ref` -- which sits at the key's number and is therefore
-	// safe at 1 and nowhere else. Nothing in this package forces the key to be
-	// number 1, so the collision is reported rather than assumed away.
-	t.Run("a key that is not number 1 collides", func(t *testing.T) {
+	// The key's number is no longer part of the layout. Under the old
+	// arithmetic a key at 3 took the slot of the prop numbered 2; now ref is
+	// pinned below every slot and the key can sit anywhere. This is what makes
+	// a composite key a question about the Ref message rather than about
+	// numbering.
+	t.Run("a key that is not number 1 is fine", func(t *testing.T) {
 		x := require.New(t)
 
-		// name at N=2 wants slot 2*2-1 = 3, where the key puts ref.
 		e := hazard(x, "KeyAtThree", []*descriptorpb.FieldDescriptorProto{
 			field("name", 2, descriptorpb.FieldDescriptorProto_TYPE_STRING, nil),
 			field("id", 3, descriptorpb.FieldDescriptorProto_TYPE_STRING,
@@ -120,13 +125,14 @@ func TestPatchLayout(t *testing.T) {
 		})
 		x.EqualValues(3, e.Key().Number())
 
-		_, err := graph.PatchLayout(e)
-		x.ErrorContains(err, "field number 3")
-		x.ErrorContains(err, "the key must be number 1")
-		t.Log(err)
+		got, err := graph.PatchLayout(e)
+		x.NoError(err)
+		x.EqualValues(1, graph.PatchRefNumber(e))
+		x.Equal(graph.PatchSlotRef, got[1].Kind)
+		x.Equal("name", got[4].Prop.Name())
 	})
 
-	t.Run("the same props with the key at 1 are fine", func(t *testing.T) {
+	t.Run("the same props with the key at 1 land in the same slots", func(t *testing.T) {
 		x := require.New(t)
 
 		e := hazard(x, "KeyAtOne", []*descriptorpb.FieldDescriptorProto{
@@ -138,7 +144,7 @@ func TestPatchLayout(t *testing.T) {
 		got, err := graph.PatchLayout(e)
 		x.NoError(err)
 		x.Equal(graph.PatchSlotRef, got[1].Kind)
-		x.Equal("name", got[3].Prop.Name())
+		x.Equal("name", got[4].Prop.Name())
 	})
 
 	// Doubling a prop number can walk into the band protobuf keeps for itself,
@@ -149,7 +155,7 @@ func TestPatchLayout(t *testing.T) {
 		e := hazard(x, "Reserved", []*descriptorpb.FieldDescriptorProto{
 			field("id", 1, descriptorpb.FieldDescriptorProto_TYPE_STRING,
 				ormpb.FieldOptions_builder{Key: proto.Bool(true)}.Build()),
-			// 9501*2-1 = 19001, inside 19000-19999.
+			// 9501*2 = 19002, inside 19000-19999.
 			field("name", 9501, descriptorpb.FieldDescriptorProto_TYPE_STRING, nil),
 		})
 

@@ -17,12 +17,21 @@ import (
 //
 // For a prop with entity field number N:
 //
-//	2N-1  the value
-//	2N    its companion bool, when the prop has one
+//	2N    the value
+//	2N+1  its companion bool, when the prop has one
 //
-// and `ref` sits at the key's own number. Immutable props are absent
-// altogether, which is what keeps `ref` off a prop's slot -- as long as the key
-// is number 1. [PatchLayout] is where that "as long as" is checked.
+// and `ref` is always number 1. Prop numbers start at 1, so the lowest slot any
+// prop can claim is 2 and slot 1 is free in every schema -- which is the whole
+// reason the band starts where it does.
+//
+// The obvious alternative, giving `ref` the key's own number, does not work.
+// Under a 2N-1 / 2N layout the props claim every number from 1 up, so there is
+// no slot `ref` could take; it is safe at the key's number only when the prop
+// that would have claimed that slot IS the key, and the key, being immutable,
+// is absent from the request. That holds at number 1 and nowhere else, which
+// made an arithmetic accident into a schema constraint. Shifting the band by
+// one removes the constraint instead of enforcing it, and incidentally puts
+// `ref` where every other request in the family already has it.
 
 const (
 	// firstReservedNumber..lastReservedNumber is the band protobuf reserves
@@ -36,10 +45,10 @@ const (
 
 // PatchRefNumber is the number of the PatchRequest's `ref` field.
 //
-// It borrows the key's number, which is free only because the key is immutable
-// and therefore never claims a slot of its own.
+// It takes an entity only so that callers read the layout from one place; the
+// answer is 1 for every entity, because no prop can reach that low.
 func PatchRefNumber(e Entity) protoreflect.FieldNumber {
-	return e.Key().Number()
+	return 1
 }
 
 // PatchProps yields, in declaration order, the props a PatchRequest carries.
@@ -61,7 +70,7 @@ func PatchProps(e Entity) iter.Seq[Prop] {
 
 // PatchValueNumber is the number p's value occupies in the PatchRequest.
 func PatchValueNumber(p Prop) protoreflect.FieldNumber {
-	return p.Number()*2 - 1
+	return p.Number() * 2
 }
 
 // PatchFlagNumber is the number of p's companion bool.
@@ -69,7 +78,7 @@ func PatchValueNumber(p Prop) protoreflect.FieldNumber {
 // It is meaningful only when [PatchFlagOf] is not [PatchFlagNone]; for a prop
 // with no companion the slot is simply not used.
 func PatchFlagNumber(p Prop) protoreflect.FieldNumber {
-	return p.Number() * 2
+	return p.Number()*2 + 1
 }
 
 // PatchFlag is the companion bool a prop carries in a PatchRequest, if any.
@@ -137,15 +146,15 @@ type PatchSlot struct {
 // PatchLayout resolves every field of e's PatchRequest and reports the mapping,
 // or the first reason the entity cannot have one.
 //
-// The arithmetic is injective across props -- 2M-1 and 2N-1 differ for M != N,
-// and an odd slot never meets an even one -- so a prop can only collide with
-// `ref`, which sits at the key's number K. That happens for every K but 1: an
-// odd K equals the value slot of the prop numbered (K+1)/2, and an even K
-// equals the companion slot of the prop numbered K/2. Nothing in this package
-// requires K == 1, so the collision is checked rather than assumed.
+// Slots cannot collide: 2M and 2N differ for M != N, an even slot never meets
+// an odd one, and `ref` sits below every slot a prop can reach. The duplicate
+// check stays anyway, because it is the invariant the rest of this file rests
+// on and a future slot would be caught by it rather than by a confused parser.
 //
-// Doubling also has a ceiling: a prop numbered in [9500, 10000] lands in
-// protobuf's reserved band, and one above 268435456 overflows the cap.
+// What can still go wrong is arithmetic. Doubling a prop number in
+// [9500, 9999] lands in protobuf's reserved band, and one above 268435455
+// overflows the cap -- both are the entity's to fix and neither is obvious from
+// the number the author wrote.
 func PatchLayout(e Entity) (map[protoreflect.FieldNumber]PatchSlot, error) {
 	out := map[protoreflect.FieldNumber]PatchSlot{}
 
@@ -171,12 +180,12 @@ func PatchLayout(e Entity) (map[protoreflect.FieldNumber]PatchSlot, error) {
 					"reserved range %d-%d; number the prop outside [%d, %d]",
 				e.FullName(), describe(s), n,
 				firstReservedNumber, lastReservedNumber,
-				firstReservedNumber/2, (lastReservedNumber+1)/2)
+				firstReservedNumber/2, lastReservedNumber/2)
 		}
 		if prev, ok := out[n]; ok {
 			return fmt.Errorf(
-				"%s: %s and %s would both take field number %d; the request puts "+
-					"ref at the key's number, so the key must be number 1",
+				"%s: %s and %s would both take field number %d, which the layout "+
+					"is supposed to make impossible",
 				e.FullName(), describe(prev), describe(s), n)
 		}
 		out[n] = s
