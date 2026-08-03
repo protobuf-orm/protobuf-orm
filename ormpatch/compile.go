@@ -684,6 +684,9 @@ func (c *compiler) test(e *patchpb.Entry, v graph.Prop, key *protoreflect.MapKey
 		if err != nil {
 			return err
 		}
+		if err := checkOrmValue(v, pv, at); err != nil {
+			return err
+		}
 		t.Want, t.Value = TestEqual, pv
 		c.tests = append(c.tests, t)
 		return nil
@@ -711,6 +714,13 @@ func (c *compiler) mutable(v graph.Prop, at patch.At) error {
 
 // write folds an operation into the column's pending write.
 func (c *compiler) write(v graph.Prop, at patch.At, op Op) error {
+	// Every value the plan will carry passes through here, which is why the
+	// ORM-level check lives at this one funnel rather than at each of the eight
+	// places a literal is materialized.
+	if err := checkOp(v, op, at); err != nil {
+		return err
+	}
+
 	if _, ok := c.wrote[v.Number()]; !ok {
 		c.wrote[v.Number()] = at
 	}
@@ -763,4 +773,24 @@ func kindName(e *patchpb.Entry) string {
 		return "nest"
 	}
 	return "an unrecognized operation"
+}
+
+// checkOp applies [checkOrmValue] to whatever values an operation carries.
+func checkOp(p graph.Prop, op Op, at patch.At) error {
+	switch o := op.(type) {
+	case SetColumn:
+		return checkOrmValue(p, o.Value, at)
+	case SetEdge:
+		return checkOrmValue(p, o.Key, at)
+	case EditJSON:
+		for _, j := range o.Ops {
+			switch j.Kind {
+			case JSONSet, JSONAppend:
+				if err := checkOrmValue(p, j.Value, at); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
 }

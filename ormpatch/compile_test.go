@@ -154,6 +154,27 @@ func TestCompileEdge(t *testing.T) {
 		x.IsType(ormpatch.SetEdge{}, plan.Writes[0].Op)
 	}))
 
+	// The proto kind says bytes and the schema says UUID, and only the schema
+	// knows how many. Refusing here keeps a compiled plan honest: a backend
+	// that receives one should not have to re-check that a write is storable.
+	t.Run("a UUID of the wrong width is refused", WithEntity(func(x *require.Assertions, e graph.Entity) {
+		_, err := compile(x, e, patch.Target(patch.Name("id")).In(patch.Name("parent")).
+			Assign(patch.Bytes([]byte{1, 2, 3})))
+
+		var bad *ormpatch.InvalidValueError
+		x.ErrorAs(err, &bad)
+		x.ErrorContains(err, "16 bytes, got 3")
+		x.NotErrorIs(err, ormpatch.ErrUnsupported, "the engine is fine; the value is not")
+	}))
+
+	t.Run("a test against a UUID of the wrong width is refused too", WithEntity(func(x *require.Assertions, e graph.Entity) {
+		_, err := compile(x, e, patch.Target(patch.Name("id")).In(patch.Name("parent")).
+			Test(patch.Bytes([]byte{1, 2, 3})))
+
+		var bad *ormpatch.InvalidValueError
+		x.ErrorAs(err, &bad)
+	}))
+
 	t.Run("assigning the edge itself is refused with a pointer to the fix", WithEntity(func(x *require.Assertions, e graph.Entity) {
 		_, err := compile(x, e, patch.Target(patch.Name("parent")).Assign(patch.Msg(
 			patch.F(patch.Name("id"), patch.Bytes([]byte("0123456789abcdef"))),

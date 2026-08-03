@@ -1,8 +1,12 @@
 package ormpatch
 
 import (
+	"fmt"
+
 	"github.com/lesomnus/protobuf-patch/patch"
 	"github.com/lesomnus/protobuf-patch/patchpb"
+	"github.com/protobuf-orm/protobuf-orm/graph"
+	"github.com/protobuf-orm/protobuf-orm/ormpb"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
 )
@@ -59,6 +63,63 @@ func materialize(v *patchpb.Value, fd protoreflect.FieldDescriptor, site patch.S
 	// ShapeNone. Validate has already refused an unset arm, so reaching here
 	// means a newer revision added one -- fail closed rather than write nothing.
 	return protoreflect.Value{}, patch.Errf(patch.CodeIllegalArm, at, "unrecognized value arm")
+}
+
+// checkOrmValue refuses a value whose bytes do not fit the ORM type the schema
+// declared for the prop.
+//
+// Only one ORM type constrains more than its proto kind does, so this is a
+// single rule rather than a table. It walks collections because the type
+// belongs to the element, not to the column: a repeated UUID is a list of
+// sixteen-byte values, and one short element is as wrong as one short field.
+func checkOrmValue(p graph.Prop, v protoreflect.Value, at patch.At) error {
+	t := p.Type()
+	if ed, ok := p.(graph.Edge); ok {
+		// An edge is addressed through it at the target's key, so the value
+		// belongs to the key's type, not to the edge's.
+		t = ed.Target().Key().Type()
+	}
+	if t != ormpb.Type_TYPE_UUID {
+		return nil
+	}
+
+	fail := func(n int) error {
+		return &InvalidValueError{At: at, Prop: p.Name(),
+			Why: fmt.Sprintf("a UUID is %d bytes, got %d", UUIDLen, n)}
+	}
+
+	switch x := v.Interface().(type) {
+	case []byte:
+		if len(x) != UUIDLen {
+			return fail(len(x))
+		}
+	case protoreflect.List:
+		for i := range x.Len() {
+			b, ok := x.Get(i).Interface().([]byte)
+			if !ok {
+				continue
+			}
+			if len(b) != UUIDLen {
+				return fail(len(b))
+			}
+		}
+	case protoreflect.Map:
+		var err error
+		x.Range(func(_ protoreflect.MapKey, e protoreflect.Value) bool {
+			b, ok := e.Interface().([]byte)
+			if !ok {
+				return true
+			}
+			if len(b) != UUIDLen {
+				err = fail(len(b))
+				return false
+			}
+			return true
+		})
+		return err
+	}
+
+	return nil
 }
 
 func fillMessage(m protoreflect.Message, mv *patchpb.MessageValue, at patch.At) error {

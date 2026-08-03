@@ -366,24 +366,33 @@ func TestEdge(t *testing.T) {
 		p.x.ErrorContains(err, "no such tenant")
 	}))
 
-	t.Run("a nil []byte key is normalized, not silently arm-less", withUser(func(p *probe) {
-		// patch.ValueOf writes b.X = pv.Bytes() with no nil guard, and the
-		// builder tests `if b.X != nil`, so a nil slice yields a Value with NO
-		// arm and NO error. the converter is what stops that reaching Compile.
+	t.Run("an empty key is refused, not written", withUser(func(p *probe) {
+		// A resolver that finds nothing has no key to give. Whatever it returns
+		// must not reach the plan: an edge column holds a UUID, and neither a
+		// nil slice nor an empty one is one.
+		//
+		// The nil case is the interesting half. patch.ValueOf writes
+		// b.X = pv.Bytes() and the builder sets the arm only when the slice is
+		// non-nil, so a nil key can become a Value with no arm at all -- which
+		// is refused far away, as a position inside the document. The converter
+		// normalizes it first so the refusal names the prop instead.
 		p.setRef("parent", "id", protoreflect.ValueOfBytes([]byte("0123456789abcdef")))
 
-		plan := p.run(func(graph.Edge, protoreflect.Message) (protoreflect.Value, error) {
-			return protoreflect.ValueOfBytes(nil), nil
-		})
-		p.x.Len(plan.Writes, 1)
-		p.x.Equal([]byte{}, plan.Writes[0].Op.(ormpatch.SetEdge).Key.Interface())
+		for name, key := range map[string]protoreflect.Value{
+			"nil":   protoreflect.ValueOfBytes(nil),
+			"empty": protoreflect.ValueOfBytes([]byte{}),
+		} {
+			doc, err := p.convert(func(graph.Edge, protoreflect.Message) (protoreflect.Value, error) {
+				return key, nil
+			})
+			p.x.NoError(err, "%s: converting must not fail on the arm", name)
+			p.x.NoError(patch.Validate(doc), "%s: the document must be well-formed", name)
 
-		// And without the guard it is an arm-less Value that ValueOf accepts.
-		raw, err := patch.ValueOf(
-			protoreflect.ValueOfBytes(nil),
-			p.e.Key().Descriptor(), patch.SiteField, "")
-		p.x.NoError(err, "ValueOf reports nothing wrong")
-		p.x.Equal(patch.ShapeNone, patch.ShapeOf(raw), "yet no arm is set")
+			_, err = ormpatch.Compile(p.e, doc)
+			var bad *ormpatch.InvalidValueError
+			p.x.ErrorAs(err, &bad, "%s", name)
+			p.x.Contains(err.Error(), "16 bytes, got 0", "%s", name)
+		}
 	}))
 
 	t.Run("a repeated edge is refused rather than silently dropped", withUser(func(p *probe) {

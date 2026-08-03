@@ -167,3 +167,31 @@ type ImmutableError struct {
 func (e *ImmutableError) Error() string {
 	return fmt.Sprintf("%s: %s is immutable", e.At, e.Prop)
 }
+
+// UUIDLen is how many bytes a value of [ormpb.Type_TYPE_UUID] has.
+//
+// Proto has no fixed-width bytes, so the schema says UUID, the wire says bytes,
+// and until here nothing checks that the two agree.
+const UUIDLen = 16
+
+// InvalidValueError is a value the prop's type cannot hold.
+//
+// The proto kind was already checked -- a string does not reach a bytes column
+// -- but the ORM layers its own types on top of proto's, and they can say more
+// than proto can. A UUID is bytes of exactly sixteen; nothing in the descriptor
+// records that.
+//
+// Like [ImmutableError] this is the ORM's own rule rather than a format
+// violation, so it carries no [patch.Code]. It is still the caller's mistake:
+// the value is wrong, not the engine. Refusing here rather than leaving it to
+// whichever backend happens to parse the bytes is what keeps a compiled plan
+// honest -- a plan that reached a backend claims its writes are storable.
+type InvalidValueError struct {
+	At   patch.At
+	Prop string
+	Why  string
+}
+
+func (e *InvalidValueError) Error() string {
+	return fmt.Sprintf("%s: %s: %s", e.At, e.Prop, e.Why)
+}
