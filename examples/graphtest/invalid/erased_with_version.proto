@@ -1,0 +1,20 @@
+edition = "2023";
+
+package graphtest;
+
+import "google/protobuf/timestamp.proto";
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
+
+message ErasedWithVersion {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // One column cannot be both the lock and the tombstone.
+  google.protobuf.Timestamp at = 2 [(orm.field) = {
+    erased: {}
+    version: {}
+  }];
+
+  option (orm.message) = {};
+}

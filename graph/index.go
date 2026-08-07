@@ -23,6 +23,16 @@ type Index interface {
 	IsUnique() bool
 	IsImmutable() bool
 	IsHidden() bool
+
+	// ExcludesErased reports whether this index covers only the rows that are
+	// still there, which a backend writes as a partial index.
+	//
+	// It is true of a unique index on an entity that erases softly, unless that
+	// index says `includes_erased`. The default is the point of it: a row that
+	// is gone should not go on holding the name it had, or the alias of
+	// something erased could never be used again -- and a schema author who has
+	// to remember to ask for that is one who finds out from a caller.
+	ExcludesErased() bool
 }
 
 type protoIndex struct {
@@ -65,6 +75,18 @@ func parseIndex(
 		v.props = append(v.props, prop)
 	}
 
+	// Refused rather than ignored, on both counts. `includes_erased` says
+	// something only about a unique index of an entity that erases softly, and
+	// a declaration that says nothing is a declaration somebody wrote for a
+	// reason that is not going to happen.
+	if opts.GetIncludesErased() {
+		if !opts.GetUnique() {
+			errs = append(errs, errors.New(": includes_erased says nothing about an index that is not unique"))
+		} else if !e.HasErasedField() {
+			errs = append(errs, errors.New(": includes_erased says nothing about an entity that has no erased field"))
+		}
+	}
+
 	if len(errs) > 0 {
 		return nil, errors.Join(errs...)
 	}
@@ -97,4 +119,16 @@ func (i *protoIndex) IsImmutable() bool {
 
 func (i *protoIndex) IsHidden() bool {
 	return i.opts.GetHidden()
+}
+
+func (i *protoIndex) ExcludesErased() bool {
+	// Only uniqueness is a problem an erased row can cause. A non-unique index
+	// that goes on covering erased rows costs a little space and answers a
+	// query somebody may well want -- what was there before -- so it is left
+	// alone.
+	if !i.IsUnique() || i.opts.GetIncludesErased() {
+		return false
+	}
+
+	return i.entity.HasErasedField()
 }

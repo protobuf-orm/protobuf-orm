@@ -55,10 +55,19 @@ func PatchRefNumber(e Entity) protoreflect.FieldNumber {
 //
 // An immutable prop is omitted rather than rejected later: the request has no
 // field shape for something that cannot be written.
+//
+// So is the erased field, and it is not immutable -- the server stamps it. It
+// is omitted because a row is erased by asking to erase it, and a request that
+// could assign the date instead would be a second way to do it, one that skips
+// whatever Erase does besides writing the column. The reverse would be worse:
+// clearing the date is a delete undone, and there is no RPC for that to mean.
 func PatchProps(e Entity) iter.Seq[Prop] {
 	return func(yield func(Prop) bool) {
 		for p := range e.Props() {
 			if p.IsImmutable() {
+				continue
+			}
+			if f, ok := p.(Field); ok && f.IsErased() {
 				continue
 			}
 			if !yield(p) {

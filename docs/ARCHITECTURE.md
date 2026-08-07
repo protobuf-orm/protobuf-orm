@@ -52,7 +52,7 @@ fields through proto extensions declared in `proto/orm.proto`:
   and configures its `indexes` and `rpc`.
 - `[(orm.field) = {...}]` → `FieldOptions` — marks a field as a **Field** prop
   (scalar/JSON/UUID/time data) and sets `key`, `unique`, `nullable`,
-  `immutable`, `default`, `type`, `version`.
+  `immutable`, `default`, `type`, `version`, `erased`.
 - `[(orm.edge) = {...}]` → `EdgeOptions` — marks a field as an **Edge** prop (a
   relation to another Entity) and sets `bind`, `from`, `unique`, `nullable`,
   `immutable`, `default`.

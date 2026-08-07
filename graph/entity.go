@@ -40,6 +40,12 @@ type Entity interface {
 
 	HasVersionField() bool
 	GetVersionField() Field
+
+	// HasErasedField reports whether this entity erases softly -- whether it
+	// has the field that says a row is gone, rather than the row being taken
+	// away. See [ormpb.ErasedOptions].
+	HasErasedField() bool
+	GetErasedField() Field
 }
 
 // Entity parsed from the proto message.
@@ -166,6 +172,29 @@ func parseEntity(
 				)
 			}
 			ver = f
+		}
+	}
+
+	// At most one erased field, for the plainer reason: it is what every read
+	// of this entity is narrowed by and what Erase stamps, and neither of those
+	// has anything to say about a second one. [protoEntity.GetErasedField]
+	// answers with the first, so the second would be a column nothing ever
+	// writes and nothing ever reads, sitting in the schema looking like it
+	// means something.
+	{
+		var del *protoField
+		for field := range v.Fields() {
+			f := field.(*protoField)
+			if !f.IsErased() {
+				continue
+			}
+			if del != nil {
+				return nil, fmt.Errorf(": there can be only one erased field, found %s(%d) and %s(%d)",
+					del.Name(), del.Number(),
+					f.Name(), f.Number(),
+				)
+			}
+			del = f
 		}
 	}
 
@@ -372,6 +401,20 @@ func (e *protoEntity) HasVersionField() bool {
 func (e *protoEntity) GetVersionField() Field {
 	for f := range e.Fields() {
 		if f.IsVersion() {
+			return f
+		}
+	}
+
+	return nil
+}
+
+func (e *protoEntity) HasErasedField() bool {
+	return e.GetErasedField() != nil
+}
+
+func (e *protoEntity) GetErasedField() Field {
+	for f := range e.Fields() {
+		if f.IsErased() {
 			return f
 		}
 	}

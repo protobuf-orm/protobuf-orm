@@ -1,0 +1,19 @@
+edition = "2023";
+
+package graphtest;
+
+import "google/protobuf/timestamp.proto";
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
+
+message ErasedWithKey {
+  // The key is what everything else names the row by; it cannot also be the
+  // thing that says the row is gone.
+  google.protobuf.Timestamp erased_at = 1 [(orm.field) = {
+    erased: {}
+    key: true
+  }];
+
+  option (orm.message) = {};
+}

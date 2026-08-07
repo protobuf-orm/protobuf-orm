@@ -94,6 +94,31 @@ func parseProp(ctx context.Context, g *Graph, e *protoEntity, mf protoreflect.Fi
 			return nil, errors.New("currently, only the time type supports versioning")
 		}
 	}
+	if of.HasErased() {
+		// The key is read on its own raw bit for the reason given above: it is
+		// marked unique and immutable long after this runs, so neither of the
+		// two checks below can see it here.
+		if of.GetKey() {
+			return nil, errors.New("erased field cannot be the key")
+		}
+		if of.GetUnique() || of.GetImmutable() {
+			return nil, errors.New("erased field cannot be unique or immutable")
+		}
+		if of.HasVersion() {
+			return nil, errors.New("erased field cannot also be the version field")
+		}
+		if of.GetType() != ormpb.Type_TYPE_TIME {
+			return nil, errors.New("currently, only the time type can say that a row was erased")
+		}
+		// Being null is how it says the row is still there, so nullable is not
+		// a choice to make. Saying otherwise is refused rather than quietly
+		// overruled: it is the one setting that would stop the whole thing
+		// working, and whoever wrote it meant something by it.
+		if of.HasNullable() && !of.GetNullable() {
+			return nil, errors.New("erased field is nullable, since being null is how it says the row is still there")
+		}
+		of.SetNullable(true)
+	}
 	if of.GetType() == ormpb.Type_TYPE_MESSAGE {
 		return nil, errors.New("field cannot be a message type (use JSON type instead)")
 	}

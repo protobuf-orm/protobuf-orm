@@ -32,6 +32,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the internal design.
   - [Edges (relations)](#edges-relations)
   - [Indexes](#indexes)
   - [Version fields (optimistic locking)](#version-fields-optimistic-locking)
+  - [Erased fields (soft deletion)](#erased-fields-soft-deletion)
   - [RPCs](#rpcs)
 - [Using the graph](#using-the-graph)
 - [Public API](#public-api)
@@ -160,7 +161,7 @@ string note = 6 [(orm.field) = {disabled: true}]; // skipped entirely
 ```
 
 `orm.field` options: `type`, `key`, `unique`, `nullable`, `immutable`,
-`default`, `version`, `disabled`.
+`default`, `version`, `erased`, `disabled`.
 
 ### Field types
 
@@ -278,7 +279,8 @@ option (orm.message) = {
 
 An index must reference at least one prop. `hidden: true` writes the index to
 the schema (as a unique constraint) but excludes it from generated request
-messages.
+messages. `includes_erased: true` belongs to
+[soft deletion](#erased-fields-soft-deletion) and is described there.
 
 ### Version fields (optimistic locking)
 
@@ -324,6 +326,64 @@ field does not help: a client that read a row, missed a concurrent update to
 it, and then erases it, destroys that update and is told the delete succeeded.
 Where that matters, the row's own lifecycle has to carry it -- a status column
 patched to `deleted` under the lock is a delete this feature does cover.
+
+### Erased fields (soft deletion)
+
+A field marked `erased` is what says a row is gone. It is a time type, there can
+be at most one per entity, and it is null for as long as the row is there.
+
+```proto
+google.protobuf.Timestamp erased_at = 2 [(orm.field) = {erased: {}}];
+```
+
+Query it via `entity.HasErasedField()` / `entity.GetErasedField()`.
+
+Erasing stamps it rather than taking the row away, and every read of the entity
+leaves out the rows that carry one. What that buys is that whatever pointed at
+the row goes on pointing at something: an audit trail that would otherwise name
+a row nothing answers to, a foreign key that would otherwise have to be cascaded
+or refused, a report that would otherwise lose a term it used to sum.
+
+It cannot be the `key`, the version field, `unique`, or `immutable` -- the
+server stamps it, so that last one is the one it especially cannot be. It is
+implicitly `nullable`, since being null is how it says the row is still there;
+writing `nullable: false` beside it is refused rather than quietly overruled.
+
+**It is not a field a caller writes.** Like the key, it is left out of the
+generated PatchRequest, so `graph.PatchProps` does not yield it. A request that
+could assign the date would be a second way to erase a row -- one that skips
+whatever `Erase` does besides writing the column -- and one that could *clear*
+it would be a delete undone, which no RPC means.
+
+**A unique index covers only the rows that are still there.** This is the part
+that is easy to get wrong and is therefore the default: a soft-deleted row goes
+on occupying a unique index, so an alias freed by erasing something could never
+be used again, and "gone" that still holds a name is not gone in the way
+anybody meant. `graph.Index.ExcludesErased()` reports it, and a backend writes
+it as a partial index.
+
+```proto
+option (orm.message) = {
+  indexes: [
+    // unique among the rows that are still there
+    {name: "alias", unique: true, refs: [{name: "alias", number: 3}]},
+
+    // and this one is meant to stay taken
+    {name: "email", unique: true, includes_erased: true, refs: [{name: "email", number: 4}]}
+  ]
+};
+```
+
+`includes_erased` says nothing about a non-unique index, or about an entity with
+no erased field, so it is refused on either rather than ignored. Non-unique
+indexes are left alone in any case: only uniqueness is a problem an erased row
+causes, and an index that still covers them answers a query somebody may well
+want -- what was there before.
+
+Nothing here deletes anything. A deployment that has to *really* remove a row --
+because it was asked to, or because a retention policy says so -- does that
+outside these RPCs, and has to decide separately what happens to whatever
+referred to it.
 
 ### RPCs
 

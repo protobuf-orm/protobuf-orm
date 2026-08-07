@@ -1,0 +1,49 @@
+edition = "2023";
+
+package graphtest;
+
+import "google/protobuf/timestamp.proto";
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
+
+message ErasedField {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // The row is there for as long as this is null. Erasing stamps it, every
+  // read leaves out the rows that carry one, and the row goes on being there
+  // for whatever refers to it.
+  google.protobuf.Timestamp erased_at = 2 [(orm.field) = {erased: {}}];
+
+  string alias = 3 [(orm.field) = {}];
+  string name = 4 [(orm.field) = {}];
+
+  option (orm.message) = {
+    indexes: [
+      // Unique among the rows that are still there, which is what it has to be
+      // for the alias of an erased row to be usable again.
+      {
+        name: "alias"
+        refs: [
+          {
+            name: "alias"
+            number: 3
+          }
+        ]
+        unique: true
+      },
+      // And this one is meant to stay taken.
+      {
+        name: "name"
+        refs: [
+          {
+            name: "name"
+            number: 4
+          }
+        ]
+        unique: true
+        includes_erased: true
+      }
+    ]
+  };
+}

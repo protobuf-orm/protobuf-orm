@@ -9,6 +9,11 @@ type Field interface {
 
 	IsVersion() bool
 
+	// IsErased reports whether this is the field that says the row is gone: a
+	// time that is null for as long as the row is there. See
+	// [ormpb.ErasedOptions].
+	IsErased() bool
+
 	isField()
 }
 
@@ -46,6 +51,10 @@ func (f *protoField) IsOptional() bool {
 
 func (f *protoField) IsVersion() bool {
 	return f.opts.HasVersion()
+}
+
+func (f *protoField) IsErased() bool {
+	return f.opts.HasErased()
 }
 
 func (f *protoField) isField() {}

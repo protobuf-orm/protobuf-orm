@@ -1,0 +1,17 @@
+edition = "2023";
+
+package graphtest;
+
+import "google/protobuf/timestamp.proto";
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
+
+message ErasedMany {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  google.protobuf.Timestamp erased_at = 2 [(orm.field) = {erased: {}}];
+  google.protobuf.Timestamp gone_at = 3 [(orm.field) = {erased: {}}];
+
+  option (orm.message) = {};
+}
