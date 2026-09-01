@@ -44,7 +44,7 @@ func GoType(d protoreflect.FieldDescriptor, t ormpb.Type, f func(v protogen.GoId
 		return "string"
 	case protoreflect.BytesKind:
 		if t == ormpb.Type_TYPE_UUID {
-			return f(protogen.GoImportPath("github.com/google/uuid").Ident("UUID"))
+			return f(protogen.GoImportPath("uuid").Ident("UUID"))
 		} else {
 			return "[]byte"
 		}

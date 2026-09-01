@@ -55,7 +55,7 @@ func TestGoTypeImportPath(t *testing.T) {
 	got := graph.GoType(id, ormpb.Type_TYPE_UUID, func(v protogen.GoIdent) string {
 		return string(v.GoImportPath) + "." + v.GoName
 	})
-	x.Equal("github.com/google/uuid.UUID", got)
+	x.Equal("uuid.UUID", got)
 }
 
 func TestIsCollection(t *testing.T) {
