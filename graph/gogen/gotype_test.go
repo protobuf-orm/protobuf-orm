@@ -1,9 +1,9 @@
-package graph_test
+package gogen_test
 
 import (
 	"testing"
 
-	"github.com/protobuf-orm/protobuf-orm/graph"
+	"github.com/protobuf-orm/protobuf-orm/graph/gogen"
 	"github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest"
 	"github.com/protobuf-orm/protobuf-orm/internal/examples/library"
 	"github.com/protobuf-orm/protobuf-orm/ormpb"
@@ -44,7 +44,7 @@ func TestGoType(t *testing.T) {
 		{"map", maps.ByName("implicit_string"), ormpb.Type_TYPE_JSON, "map[string]string"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			require.Equal(t, tc.want, graph.GoType(tc.field, tc.typ, goName))
+			require.Equal(t, tc.want, gogen.GoType(tc.field, tc.typ, goName))
 		})
 	}
 }
@@ -52,22 +52,8 @@ func TestGoType(t *testing.T) {
 func TestGoTypeImportPath(t *testing.T) {
 	x := require.New(t)
 	id := library.File_library_user_proto.Messages().ByName("User").Fields().ByNumber(1)
-	got := graph.GoType(id, ormpb.Type_TYPE_UUID, func(v protogen.GoIdent) string {
+	got := gogen.GoType(id, ormpb.Type_TYPE_UUID, func(v protogen.GoIdent) string {
 		return string(v.GoImportPath) + "." + v.GoName
 	})
 	x.Equal("uuid.UUID", got)
-}
-
-func TestIsCollection(t *testing.T) {
-	WithEntity(library.File_library_user_proto, "User", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
-		props := map[string]graph.Prop{}
-		for p := range entity.Props() {
-			props[p.Name()] = p
-		}
-		x.False(graph.IsCollection(props["id"]), "scalar field is not a collection")
-		x.False(graph.IsCollection(props["name"]), "scalar field is not a collection")
-		x.True(graph.IsCollection(props["labels"]), "map field is a collection")
-		x.True(graph.IsCollection(props["children"]), "repeated edge is a collection")
-		x.False(graph.IsCollection(props["parent"]), "single edge is not a collection")
-	})(t)
 }

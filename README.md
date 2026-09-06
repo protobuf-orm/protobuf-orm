@@ -120,12 +120,14 @@ func main() {
 ```
 
 In a real protoc/buf plugin you parse every file at once with
-[`graph.ParseFiles`](#public-api):
+[`gogen.ParseFiles`](#public-api). It is in `graph/gogen` rather than `graph`
+because it takes `[]*protogen.File`, and `protogen` carries Go's compiler front
+end with it -- a program that only *has* a graph should not link a Go parser:
 
 ```go
 protogen.Options{}.Run(func(gen *protogen.Plugin) error {
 	g := graph.NewGraph()
-	if err := graph.ParseFiles(context.Background(), g, gen.Files); err != nil {
+	if err := gogen.ParseFiles(context.Background(), g, gen.Files); err != nil {
 		return err
 	}
 	// walk g.Entities and emit code with gen.NewGeneratedFile(...)
@@ -428,11 +430,16 @@ how cross-file relations resolve.
 
 - `NewGraph() *Graph`, `Graph.Clone()`, `Graph.InPlaceMerge(*Graph)`
 - `Parse(ctx, *Graph, protoreflect.FileDescriptor) error`
-- `ParseFiles(ctx, *Graph, []*protogen.File) error`
 - Interfaces: `Entity`, `Prop`, `Field`, `Edge`, `Index`, `Elem`, `Rpc`,
   `RpcMap`, `RpcMessage`, `ProtoTyped`
-- Helpers: `GoType`, `GoTypeOf`, `IsCollection`, `GetGoImportPath`,
-  `MustGetGoImportPath`, `ProtoType`
+- Helpers: `IsCollection`, `ProtoType`
+
+`graph/gogen` package -- what only a Go code generator needs, kept apart so that
+`graph` does not import `protogen` and drag Go's compiler front end into every
+binary that describes an entity:
+
+- `ParseFiles(ctx, *graph.Graph, []*protogen.File) error`
+- `GoType`, `GoTypeOf`, `GetGoImportPath`, `MustGetGoImportPath`
 
 `ormpb` package (generated options + helpers):
 

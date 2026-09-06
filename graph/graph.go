@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"maps"
 
-	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -71,23 +70,5 @@ func Parse(ctx context.Context, g *Graph, f protoreflect.FileDescriptor) error {
 	}
 
 	g.InPlaceMerge(g_)
-	return nil
-}
-
-// ParseFiles parses every file marked for generation, in order, into g. It is
-// the entry point for a protoc/buf plugin, which passes gen.Files. Files not
-// marked for generation (imports) are skipped.
-func ParseFiles(ctx context.Context, g *Graph, fs []*protogen.File) error {
-	for _, f := range fs {
-		if !f.Generate {
-			continue
-		}
-
-		d := f.Desc
-		if err := Parse(ctx, g, d); err != nil {
-			return fmt.Errorf("%s: %w", d.Path(), err)
-		}
-	}
-
 	return nil
 }
