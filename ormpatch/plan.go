@@ -125,17 +125,17 @@ type ClearEdge struct{}
 // each other's work.
 type EditJSON struct{ Ops []JSONOp }
 
-func (SetColumn) isOp()  {}
+func (SetColumn) isOp()   {}
 func (ClearColumn) isOp() {}
-func (SetEdge) isOp()    {}
-func (ClearEdge) isOp()  {}
-func (EditJSON) isOp()   {}
+func (SetEdge) isOp()     {}
+func (ClearEdge) isOp()   {}
+func (EditJSON) isOp()    {}
 
-func (o SetColumn) Describe() string  { return fmt.Sprintf("set %v", o.Value.Interface()) }
-func (ClearColumn) Describe() string  { return "clear" }
-func (o SetEdge) Describe() string    { return fmt.Sprintf("set edge %v", o.Key.Interface()) }
-func (ClearEdge) Describe() string    { return "clear edge" }
-func (o EditJSON) Describe() string   { return fmt.Sprintf("edit json (%d ops)", len(o.Ops)) }
+func (o SetColumn) Describe() string { return fmt.Sprintf("set %v", o.Value.Interface()) }
+func (ClearColumn) Describe() string { return "clear" }
+func (o SetEdge) Describe() string   { return fmt.Sprintf("set edge %v", o.Key.Interface()) }
+func (ClearEdge) Describe() string   { return "clear edge" }
+func (o EditJSON) Describe() string  { return fmt.Sprintf("edit json (%d ops)", len(o.Ops)) }
 
 // JSONOpKind is what a [JSONOp] does at its address.
 type JSONOpKind int

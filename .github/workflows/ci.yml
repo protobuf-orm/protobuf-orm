@@ -1,0 +1,39 @@
+# The root of this stack, and until now the only module in it with nothing
+# checking itself. What it publishes is a Go API that four other repositories
+# compile against, so a move here is a compile error there -- and one such move
+# broke three of them in a day without this repository noticing, because
+# nothing here runs.
+#
+# `ormpb` is generated from `proto/` and committed, so the check worth having
+# is to generate and see whether anything moved: a generated file that was not
+# regenerated compiles perfectly and is wrong.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: bufbuild/buf-action@v1
+        with:
+          setup_only: true
+
+      # Once, unlike the plugin repositories: the only plugin here is
+      # protoc-gen-go, so nothing this run writes is an input to it.
+      - run: buf generate
+
+      - run: git diff --exit-code
+
+      - run: gofmt -l . | tee /dev/stderr | (! read)
+      - run: go build ./...
+      - run: go vet ./...
+      - run: go test ./... -count=1
