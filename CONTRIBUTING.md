@@ -8,14 +8,15 @@ describe a fix in code.
 
 ## Why
 
-Every line here is under one copyright, and staying that way keeps options open
-that would close the moment it is not. That is a decision about this project's
-future rather than a judgement about anyone's code, and it is written down
-because a policy nobody states is one people run into.
+I want this project to remain something I can design and maintain end to end.
+Accepting outside code means accepting the design decisions that came with it
+and the maintenance that follows, and that is not what I want for this one.
 
-The same reason cuts the other way for anything already public: this is Apache
-2.0 and stays that way. You may use it, modify it and redistribute it on those
-terms, and nothing here asks for that back.
+It is not a judgement about anyone's code, and it is written down because a
+policy nobody states is one people run into.
+
+Nothing about that restricts what you may do with what is here. It is Apache
+2.0, and a release made under those terms stays available under them.
 
 ## What is useful
 
@@ -25,9 +26,9 @@ terms, and nothing here asks for that back.
 - the smallest schema or input that shows it
 - versions — this module, Go, and the database if one is involved
 
-A good report is worth more than a patch, and it carries no copyright question
-with it. If you have worked out why something breaks, say why in prose; that is
-an explanation, and explanations are welcome.
+A good report is worth more than a patch, and it is the harder half to come by.
+If you have worked out why something breaks, say why in prose -- that is an
+explanation rather than a patch, and explanations are welcome.
 
 ## Security
 
