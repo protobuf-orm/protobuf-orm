@@ -47,7 +47,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the internal design.
 | **Edge**    | `[(orm.edge) = {...}]`        | A relation to another entity.                               |
 | **Key**     | `(orm.field) = {key: true}`   | The entity's primary key (implicitly unique & immutable).   |
 | **Index**   | `(orm.message).indexes`       | A (optionally unique) index over one or more props.         |
-| **RPC**     | `(orm.message).rpc`           | Generated `Add` / `Get` / `Patch` / `Erase` operations.     |
+| **RPC**     | `(orm.message).rpc`           | Generated `Add` / `AddMany` / `Get` / `Patch` / `Erase` operations. |
 
 A **Prop** is the umbrella term for "a member of an entity" — every prop is
 either a Field or an Edge.
@@ -396,11 +396,18 @@ four; individual operations can be added one at a time or disabled.
 option (orm.message) = {rpc: {crud: true}};                    // Add+Get+Patch+Erase
 option (orm.message) = {rpc: {add: {}}};                       // only Add
 option (orm.message) = {rpc: {crud: true, add: {disabled: true}}}; // all but Add
+option (orm.message) = {rpc: {crud: true, add: {many: {}}}};   // and AddMany
 ```
 
 For an entity `library.User` this yields a `library.UserService` with, e.g.,
 `Add(UserAddRequest) -> User`, `Get(UserRef) -> User`, `Patch(UserPatchRequest)
 -> google.protobuf.Empty`, and `Erase(UserRef) -> google.protobuf.Empty`.
+
+`add.many` adds `AddMany(UserAddManyRequest) -> UserAddManyResponse` beside the
+Add, which `crud` does not: a list of Add requests in, the rows they added out,
+in the same order. Each item is added as Add would add it and the call is one
+transaction, all of the rows or none. `many: {max: 200}` bounds the items one
+call may carry; it is 1000 when unset, and a call with more is refused.
 
 ## Using the graph
 
@@ -416,6 +423,7 @@ entity.Edges()               // iter.Seq[Edge]
 entity.Indexes()             // iter.Seq[Index]
 entity.Keys()                // iter.Seq[Elem] — every unique prop/index
 entity.Rpcs().HasAdd()       // RPC presence
+entity.Rpcs().GetAddMany()   // nil, or AddMany and its Max()
 entity.HasVersionField()     // optimistic locking
 ```
 

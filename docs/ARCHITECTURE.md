@@ -119,9 +119,12 @@ generated request messages.
 ### Rpc
 
 `parseRpcs` (`graph/rpc.go`) turns `MessageOptions.rpc` into a `RpcMap` of up to
-four operations — `Add`, `Get`, `Patch`, `Erase`. Setting `crud:true` enables
-all four; individual operations can then be disabled. Each `Rpc` carries the
-synthesized request/response message full-names (e.g. `library.UserAddRequest`,
+five operations — `Add`, `AddMany`, `Get`, `Patch`, `Erase`. Setting `crud:true`
+enables all but `AddMany`; individual operations can then be disabled. `AddMany`
+is `add.many`, and exists only beside an enabled `Add`; its `RpcAddMany` also
+carries `Max()`, the most items one call may carry (`DefaultAddManyMax` when the
+option says nothing). Each `Rpc` carries the synthesized request/response message
+full-names (e.g. `library.UserAddRequest`, `library.UserAddManyRequest`,
 `library.UserRef`, `google.protobuf.Empty`) under a `<Entity>Service`.
 
 ### Type mapping

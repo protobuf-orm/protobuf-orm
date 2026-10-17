@@ -58,3 +58,42 @@ message RpcDisabledExplicit {
     }
   };
 }
+
+message RpcAddMany {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // AddMany is enabled beside Add by `orm.message.rpc.add.many`.
+  option (orm.message) = {
+    rpc: {
+      add: {many: {}}
+    }
+  };
+}
+
+message RpcAddManyMax {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // And it carries at most `max` items.
+  option (orm.message) = {
+    rpc: {
+      add: {
+        many: {max: 50}
+      }
+    }
+  };
+}
+
+message RpcAddManyWithoutAdd {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // An Add that is disabled takes its AddMany with it.
+  option (orm.message) = {
+    rpc: {
+      crud: true
+      add: {
+        disabled: true
+        many: {}
+      }
+    }
+  };
+}

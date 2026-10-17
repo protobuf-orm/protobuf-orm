@@ -6,6 +6,27 @@ option go_package = "github.com/protobuf-orm/protobuf-orm/ormpb";
 
 message RpcAdd {
   bool disabled = 1;
+
+  // Many enables AddMany beside Add. Unset is no AddMany, and so is an Add
+  // that is disabled: the one is the other many times.
+  RpcAddMany many = 2;
+}
+
+// RpcAddMany is AddMany, which adds many rows of the entity in one call.
+//
+// Its request is a list of the entity's Add requests and its answer is the rows
+// they added, in the same order. Each item is added as Add would add it, and
+// the call is one transaction: all of the rows or none of them. What it saves
+// is the round trip -- a call that writes a thousand rows is otherwise a
+// thousand Adds, each a statement of its own.
+message RpcAddMany {
+  // Max is the most items one call may carry. A call with more is refused
+  // rather than cut, since a caller that sent rows expects them all written or
+  // to be told. Zero is 1000.
+  //
+  // It bounds one transaction, not what can be written: a caller with more
+  // makes more calls.
+  uint32 max = 1;
 }
 
 message RpcGet {
