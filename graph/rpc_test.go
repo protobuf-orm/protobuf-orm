@@ -41,6 +41,35 @@ func TestRpcEnable(t *testing.T) {
 	}))
 }
 
+func TestRpcAddMany(t *testing.T) {
+	t.Run("enabled beside Add", WithEntity(graphtest.File_graphtest_rpc_proto, "RpcAddMany", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
+		rpcs := entity.Rpcs()
+		x.True(rpcs.HasAdd())
+		x.True(rpcs.HasAddMany())
+
+		v := rpcs.GetAddMany()
+		x.Equal("graphtest.RpcAddManyService.AddMany", string(v.FullName()))
+		x.Equal("graphtest.RpcAddManyAddManyRequest", string(v.Request().FullName()))
+		x.Equal("graphtest.RpcAddManyAddManyResponse", string(v.Response().FullName()))
+		x.False(v.Request().IsStream())
+		x.False(v.Response().IsStream())
+		x.Equal(graph.DefaultAddManyMax, v.Max())
+	}))
+	t.Run("with a max of its own", WithEntity(graphtest.File_graphtest_rpc_proto, "RpcAddManyMax", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
+		x.Equal(50, entity.Rpcs().GetAddMany().Max())
+	}))
+	t.Run("not without its Add", WithEntity(graphtest.File_graphtest_rpc_proto, "RpcAddManyWithoutAdd", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
+		x.False(entity.Rpcs().HasAdd())
+		x.False(entity.Rpcs().HasAddMany())
+		x.Nil(entity.Rpcs().GetAddMany())
+	}))
+	t.Run("and not by the CRUD flag", WithEntity(graphtest.File_graphtest_rpc_proto, "RpcCrud", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
+		x.True(entity.Rpcs().HasAdd())
+		x.False(entity.Rpcs().HasAddMany())
+		x.Nil(entity.Rpcs().GetAddMany())
+	}))
+}
+
 func TestRpcMessageNames(t *testing.T) {
 	WithEntity(graphtest.File_graphtest_rpc_proto, "RpcCrud", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
 		rpcs := entity.Rpcs()

@@ -10,6 +10,10 @@ import (
 type RpcMap interface {
 	HasAdd() bool
 	GetAdd() Rpc
+	// HasAddMany is whether there is an AddMany beside the Add, which there
+	// can only be with one.
+	HasAddMany() bool
+	GetAddMany() RpcAddMany
 	HasGet() bool
 	GetGet() Rpc
 	HasPatch() bool
@@ -19,10 +23,11 @@ type RpcMap interface {
 }
 
 type rpcMap struct {
-	add   *rpcAdd
-	get   *rpcGet
-	patch *rpcPatch
-	erase *rpcErase
+	add     *rpcAdd
+	addMany *rpcAddMany
+	get     *rpcGet
+	patch   *rpcPatch
+	erase   *rpcErase
 }
 
 func (m *rpcMap) HasAdd() bool   { return m.add != nil }
@@ -33,6 +38,17 @@ func (m *rpcMap) HasPatch() bool { return m.patch != nil }
 func (m *rpcMap) GetPatch() Rpc  { return m.patch }
 func (m *rpcMap) HasErase() bool { return m.erase != nil }
 func (m *rpcMap) GetErase() Rpc  { return m.erase }
+
+func (m *rpcMap) HasAddMany() bool { return m.addMany != nil }
+
+// GetAddMany answers nil, and not a nil RpcAddMany, when there is none, so
+// that `GetAddMany() == nil` says what it looks like it says.
+func (m *rpcMap) GetAddMany() RpcAddMany {
+	if m.addMany == nil {
+		return nil
+	}
+	return m.addMany
+}
 
 type Rpc interface {
 	Entity() Entity
@@ -86,6 +102,21 @@ func parseRpcs(ctx context.Context, g *Graph, e *protoEntity, opts *ormpb.RpcOpt
 				res: &rpcMessage{fullname: e.FullName()},
 			},
 			opt: opt,
+		}
+
+		// Inside the Add, because AddMany is that Add many times: an entity
+		// whose Add is disabled has no single row to add, let alone many.
+		if many := opt.GetMany(); opt.HasMany() {
+			rpcs.addMany = &rpcAddMany{
+				rpc: rpc{
+					entity:   e,
+					fullname: svc_name.Append("AddMany"),
+
+					req: &rpcMessage{fullname: pkg_name.Append(msg_name + "AddManyRequest")},
+					res: &rpcMessage{fullname: pkg_name.Append(msg_name + "AddManyResponse")},
+				},
+				opt: many,
+			}
 		}
 	}
 	if opt := opts.GetGet(); opts.HasGet() && !opt.GetDisabled() {
@@ -147,6 +178,36 @@ func (r *rpc) Response() RpcMessage {
 type rpcAdd struct {
 	rpc
 	opt *ormpb.RpcAdd
+}
+
+// DefaultAddManyMax is the most items an AddMany carries when its option says
+// nothing.
+//
+// A thousand because it is one transaction, which holds its locks until the
+// last row is written, and because it is well inside what a statement can bind
+// on any engine once a generator splits the rows into statements of a few
+// hundred.
+const DefaultAddManyMax = 1000
+
+// RpcAddMany is AddMany, which adds many rows of the entity in one call: a list
+// of the entity's Add requests in, the rows they added out, in the same order.
+type RpcAddMany interface {
+	Rpc
+
+	// Max is the most items one call may carry. A call with more is refused.
+	Max() int
+}
+
+type rpcAddMany struct {
+	rpc
+	opt *ormpb.RpcAddMany
+}
+
+func (r *rpcAddMany) Max() int {
+	if v := r.opt.GetMax(); v > 0 {
+		return int(v)
+	}
+	return DefaultAddManyMax
 }
 
 type rpcGet struct {

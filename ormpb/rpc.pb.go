@@ -23,6 +23,7 @@ const (
 type RpcAdd struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Disabled    bool                   `protobuf:"varint,1,opt,name=disabled"`
+	xxx_hidden_Many        *RpcAddMany            `protobuf:"bytes,2,opt,name=many"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
 	unknownFields          protoimpl.UnknownFields
@@ -61,9 +62,20 @@ func (x *RpcAdd) GetDisabled() bool {
 	return false
 }
 
+func (x *RpcAdd) GetMany() *RpcAddMany {
+	if x != nil {
+		return x.xxx_hidden_Many
+	}
+	return nil
+}
+
 func (x *RpcAdd) SetDisabled(v bool) {
 	x.xxx_hidden_Disabled = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 1)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 2)
+}
+
+func (x *RpcAdd) SetMany(v *RpcAddMany) {
+	x.xxx_hidden_Many = v
 }
 
 func (x *RpcAdd) HasDisabled() bool {
@@ -73,15 +85,29 @@ func (x *RpcAdd) HasDisabled() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
 }
 
+func (x *RpcAdd) HasMany() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Many != nil
+}
+
 func (x *RpcAdd) ClearDisabled() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
 	x.xxx_hidden_Disabled = false
+}
+
+func (x *RpcAdd) ClearMany() {
+	x.xxx_hidden_Many = nil
 }
 
 type RpcAdd_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	Disabled *bool
+	// Many enables AddMany beside Add. Unset is no AddMany, and so is an Add
+	// that is disabled: the one is the other many times.
+	Many *RpcAddMany
 }
 
 func (b0 RpcAdd_builder) Build() *RpcAdd {
@@ -89,8 +115,97 @@ func (b0 RpcAdd_builder) Build() *RpcAdd {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Disabled != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 1)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 2)
 		x.xxx_hidden_Disabled = *b.Disabled
+	}
+	x.xxx_hidden_Many = b.Many
+	return m0
+}
+
+// RpcAddMany is AddMany, which adds many rows of the entity in one call.
+//
+// Its request is a list of the entity's Add requests and its answer is the rows
+// they added, in the same order. Each item is added as Add would add it, and
+// the call is one transaction: all of the rows or none of them. What it saves
+// is the round trip -- a call that writes a thousand rows is otherwise a
+// thousand Adds, each a statement of its own.
+type RpcAddMany struct {
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Max         uint32                 `protobuf:"varint,1,opt,name=max"`
+	XXX_raceDetectHookData protoimpl.RaceDetectHookData
+	XXX_presence           [1]uint32
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *RpcAddMany) Reset() {
+	*x = RpcAddMany{}
+	mi := &file_orm_rpc_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RpcAddMany) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RpcAddMany) ProtoMessage() {}
+
+func (x *RpcAddMany) ProtoReflect() protoreflect.Message {
+	mi := &file_orm_rpc_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *RpcAddMany) GetMax() uint32 {
+	if x != nil {
+		return x.xxx_hidden_Max
+	}
+	return 0
+}
+
+func (x *RpcAddMany) SetMax(v uint32) {
+	x.xxx_hidden_Max = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 1)
+}
+
+func (x *RpcAddMany) HasMax() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *RpcAddMany) ClearMax() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_Max = 0
+}
+
+type RpcAddMany_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Max is the most items one call may carry. A call with more is refused
+	// rather than cut, since a caller that sent rows expects them all written or
+	// to be told. Zero is 1000.
+	//
+	// It bounds one transaction, not what can be written: a caller with more
+	// makes more calls.
+	Max *uint32
+}
+
+func (b0 RpcAddMany_builder) Build() *RpcAddMany {
+	m0 := &RpcAddMany{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Max != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 1)
+		x.xxx_hidden_Max = *b.Max
 	}
 	return m0
 }
@@ -106,7 +221,7 @@ type RpcGet struct {
 
 func (x *RpcGet) Reset() {
 	*x = RpcGet{}
-	mi := &file_orm_rpc_proto_msgTypes[1]
+	mi := &file_orm_rpc_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -118,7 +233,7 @@ func (x *RpcGet) String() string {
 func (*RpcGet) ProtoMessage() {}
 
 func (x *RpcGet) ProtoReflect() protoreflect.Message {
-	mi := &file_orm_rpc_proto_msgTypes[1]
+	mi := &file_orm_rpc_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -181,7 +296,7 @@ type RpcPatch struct {
 
 func (x *RpcPatch) Reset() {
 	*x = RpcPatch{}
-	mi := &file_orm_rpc_proto_msgTypes[2]
+	mi := &file_orm_rpc_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -193,7 +308,7 @@ func (x *RpcPatch) String() string {
 func (*RpcPatch) ProtoMessage() {}
 
 func (x *RpcPatch) ProtoReflect() protoreflect.Message {
-	mi := &file_orm_rpc_proto_msgTypes[2]
+	mi := &file_orm_rpc_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -256,7 +371,7 @@ type RpcErase struct {
 
 func (x *RpcErase) Reset() {
 	*x = RpcErase{}
-	mi := &file_orm_rpc_proto_msgTypes[3]
+	mi := &file_orm_rpc_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -268,7 +383,7 @@ func (x *RpcErase) String() string {
 func (*RpcErase) ProtoMessage() {}
 
 func (x *RpcErase) ProtoReflect() protoreflect.Message {
-	mi := &file_orm_rpc_proto_msgTypes[3]
+	mi := &file_orm_rpc_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -324,9 +439,13 @@ var File_orm_rpc_proto protoreflect.FileDescriptor
 
 const file_orm_rpc_proto_rawDesc = "" +
 	"\n" +
-	"\rorm/rpc.proto\x12\x03orm\"$\n" +
+	"\rorm/rpc.proto\x12\x03orm\"I\n" +
 	"\x06RpcAdd\x12\x1a\n" +
-	"\bdisabled\x18\x01 \x01(\bR\bdisabled\"$\n" +
+	"\bdisabled\x18\x01 \x01(\bR\bdisabled\x12#\n" +
+	"\x04many\x18\x02 \x01(\v2\x0f.orm.RpcAddManyR\x04many\"\x1e\n" +
+	"\n" +
+	"RpcAddMany\x12\x10\n" +
+	"\x03max\x18\x01 \x01(\rR\x03max\"$\n" +
 	"\x06RpcGet\x12\x1a\n" +
 	"\bdisabled\x18\x01 \x01(\bR\bdisabled\"&\n" +
 	"\bRpcPatch\x12\x1a\n" +
@@ -334,19 +453,21 @@ const file_orm_rpc_proto_rawDesc = "" +
 	"\bRpcErase\x12\x1a\n" +
 	"\bdisabled\x18\x01 \x01(\bR\bdisabledB,Z*github.com/protobuf-orm/protobuf-orm/ormpbb\beditionsp\xe8\a"
 
-var file_orm_rpc_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_orm_rpc_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_orm_rpc_proto_goTypes = []any{
-	(*RpcAdd)(nil),   // 0: orm.RpcAdd
-	(*RpcGet)(nil),   // 1: orm.RpcGet
-	(*RpcPatch)(nil), // 2: orm.RpcPatch
-	(*RpcErase)(nil), // 3: orm.RpcErase
+	(*RpcAdd)(nil),     // 0: orm.RpcAdd
+	(*RpcAddMany)(nil), // 1: orm.RpcAddMany
+	(*RpcGet)(nil),     // 2: orm.RpcGet
+	(*RpcPatch)(nil),   // 3: orm.RpcPatch
+	(*RpcErase)(nil),   // 4: orm.RpcErase
 }
 var file_orm_rpc_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	1, // 0: orm.RpcAdd.many:type_name -> orm.RpcAddMany
+	1, // [1:1] is the sub-list for method output_type
+	1, // [1:1] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_orm_rpc_proto_init() }
@@ -360,7 +481,7 @@ func file_orm_rpc_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_orm_rpc_proto_rawDesc), len(file_orm_rpc_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
