@@ -1,0 +1,28 @@
+edition = "2023";
+
+package graphtest;
+
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
+
+// The same across two entities. The one with `from` comes first, so that the
+// other is parsed while the edge that names it is not yet there.
+message EdgeOnDeleteCard {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  EdgeOnDeletePerson owner = 2 [(orm.edge) = {
+    from: {name: "card", number: 2}
+  }];
+
+  option (orm.message) = {};
+}
+
+message EdgeOnDeletePerson {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // The key is EdgeOnDeleteCard.owner's.
+  EdgeOnDeleteCard card = 2 [(orm.edge) = {on_delete: ON_DELETE_CASCADE}];
+
+  option (orm.message) = {};
+}

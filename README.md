@@ -261,6 +261,33 @@ Cardinality and uniqueness are inferred: a non-repeated edge on both sides is
 treated as one-to-one (and marked unique); a `unique` edge cannot be
 `repeated`.
 
+`orm.edge` options: `bind`, `from`, `unique`, `nullable`, `immutable`,
+`default`, `on_delete`, `disabled`.
+
+`on_delete` says what becomes of the edge's row when the row it names is
+deleted, and `Edge.OnDelete()` answers it:
+
+- `ON_DELETE_UNSPECIFIED` (unset) -- the storage generator's own default, as
+  before there was this option.
+- `ON_DELETE_RESTRICT` -- the delete is refused while a row names it.
+- `ON_DELETE_CASCADE` -- the row is deleted with it.
+- `ON_DELETE_SET_NULL` -- the edge is cleared; refused on an edge that is not
+  nullable.
+
+```proto
+Tenant tenant = 2 [(orm.edge) = {on_delete: ON_DELETE_CASCADE}];
+```
+
+It is said on the edge that holds the key, since that is the row a delete
+reaches. An edge holds the key when it is not `repeated`, unless it is the side
+of a one-to-one that the other is written `from`: there the key is on the
+other side. So `User.parent` holds it beside `children` written from it, and
+in a `next`/`prev` pair written `prev from next`, `prev` holds it. On a list,
+or on `next`, it is refused, and the refusal names the edge to say it on.
+It is about a row that is really deleted: a row
+[erased softly](#erased-fields-soft-deletion) is not deleted, so nothing here
+happens to what names it.
+
 ### Indexes
 
 Indexes are declared on the message option and reference props by **name and

@@ -1,0 +1,25 @@
+edition = "2023";
+
+package orm;
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/ormpb";
+
+// OnDelete is what becomes of a row when the row its edge names is deleted.
+//
+// It is said on the edge that holds the key, since that is the row the delete
+// reaches: an edge that is not a list, unless it is the side of a one-to-one
+// that the other is written `from`, whose key is on that other side.
+//
+// It is about a row that is really deleted. A row erased softly, of an entity
+// with an `erased` field, is not deleted: it goes on being there for whatever
+// names it, so nothing here happens to what names it.
+enum OnDelete {
+  // The storage generator's own default, as before this option.
+  ON_DELETE_UNSPECIFIED = 0;
+  // The delete is refused while a row names it.
+  ON_DELETE_RESTRICT = 1;
+  // The row is deleted with it.
+  ON_DELETE_CASCADE = 2;
+  // The edge is cleared; a nullable edge only.
+  ON_DELETE_SET_NULL = 3;
+}

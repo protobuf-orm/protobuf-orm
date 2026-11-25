@@ -55,7 +55,7 @@ fields through proto extensions declared in `proto/orm.proto`:
   `immutable`, `default`, `type`, `version`, `erased`.
 - `[(orm.edge) = {...}]` → `EdgeOptions` — marks a field as an **Edge** prop (a
   relation to another Entity) and sets `bind`, `from`, `unique`, `nullable`,
-  `immutable`, `default`.
+  `immutable`, `default`, `on_delete`.
 
 A field may carry **at most one** of `orm.field` / `orm.edge`. If it carries
 neither, it is treated as a field and its `Type` is deduced from the proto kind.
@@ -89,7 +89,12 @@ is always *either* a `Field` *or* an `Edge`:
   `version` field for optimistic locking.
 - **Edge** (`graph/edge.go`) — backed by a message field that points at another
   Entity. Tracks `Target()`, `Inverse()` (the back-reference edge it declares
-  via `from:`) and `Reverse()` (the edge on the target that points back here).
+  via `from:`) and `Reverse()` (the edge on the target that points back here),
+  and `OnDelete()`, what becomes of its row when the row it names is deleted.
+  Only the edge that holds the key may say that: one that is not a list,
+  unless it is the To side of a one-to-one (no `Inverse()`, and a `Reverse()`
+  that is not a list). It is checked at the end of `Parse`, once every entity
+  of the file is whole.
 
 `Prop` exposes presence/constraint predicates: `IsList`, `IsUnique`,
 `IsNullable`, `IsImmutable`, `IsOptional`, `HasDefault`.

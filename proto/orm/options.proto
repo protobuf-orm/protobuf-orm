@@ -3,6 +3,7 @@ edition = "2023";
 package orm;
 
 import "orm/index.proto";
+import "orm/on_delete.proto";
 import "orm/ref.proto";
 import "orm/rpc.proto";
 import "orm/type.proto";
@@ -69,6 +70,10 @@ message EdgeOptions {
   bool unique = 6;
   bool nullable = 7;
   bool immutable = 8;
+
+  // What becomes of this edge's row when the row it names is deleted. Unset is
+  // the storage generator's own default. See OnDelete.
+  OnDelete on_delete = 9;
 
   // TODO: Any?
   string default = 16;

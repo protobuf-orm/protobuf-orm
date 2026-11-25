@@ -670,6 +670,7 @@ type EdgeOptions struct {
 	xxx_hidden_Unique      bool                   `protobuf:"varint,6,opt,name=unique"`
 	xxx_hidden_Nullable    bool                   `protobuf:"varint,7,opt,name=nullable"`
 	xxx_hidden_Immutable   bool                   `protobuf:"varint,8,opt,name=immutable"`
+	xxx_hidden_OnDelete    OnDelete               `protobuf:"varint,9,opt,name=on_delete,json=onDelete,enum=orm.OnDelete"`
 	xxx_hidden_Default     *string                `protobuf:"bytes,16,opt,name=default"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
@@ -744,6 +745,15 @@ func (x *EdgeOptions) GetImmutable() bool {
 	return false
 }
 
+func (x *EdgeOptions) GetOnDelete() OnDelete {
+	if x != nil {
+		if protoimpl.X.Present(&(x.XXX_presence[0]), 6) {
+			return x.xxx_hidden_OnDelete
+		}
+	}
+	return OnDelete_ON_DELETE_UNSPECIFIED
+}
+
 func (x *EdgeOptions) GetDefault() string {
 	if x != nil {
 		if x.xxx_hidden_Default != nil {
@@ -756,7 +766,7 @@ func (x *EdgeOptions) GetDefault() string {
 
 func (x *EdgeOptions) SetDisabled(v bool) {
 	x.xxx_hidden_Disabled = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 8)
 }
 
 func (x *EdgeOptions) SetBind(v *Ref) {
@@ -769,22 +779,27 @@ func (x *EdgeOptions) SetFrom(v *Ref) {
 
 func (x *EdgeOptions) SetUnique(v bool) {
 	x.xxx_hidden_Unique = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 8)
 }
 
 func (x *EdgeOptions) SetNullable(v bool) {
 	x.xxx_hidden_Nullable = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 8)
 }
 
 func (x *EdgeOptions) SetImmutable(v bool) {
 	x.xxx_hidden_Immutable = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 8)
+}
+
+func (x *EdgeOptions) SetOnDelete(v OnDelete) {
+	x.xxx_hidden_OnDelete = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 6, 8)
 }
 
 func (x *EdgeOptions) SetDefault(v string) {
 	x.xxx_hidden_Default = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 6, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 7, 8)
 }
 
 func (x *EdgeOptions) HasDisabled() bool {
@@ -829,11 +844,18 @@ func (x *EdgeOptions) HasImmutable() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 5)
 }
 
-func (x *EdgeOptions) HasDefault() bool {
+func (x *EdgeOptions) HasOnDelete() bool {
 	if x == nil {
 		return false
 	}
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 6)
+}
+
+func (x *EdgeOptions) HasDefault() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 7)
 }
 
 func (x *EdgeOptions) ClearDisabled() {
@@ -864,8 +886,13 @@ func (x *EdgeOptions) ClearImmutable() {
 	x.xxx_hidden_Immutable = false
 }
 
-func (x *EdgeOptions) ClearDefault() {
+func (x *EdgeOptions) ClearOnDelete() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 6)
+	x.xxx_hidden_OnDelete = OnDelete_ON_DELETE_UNSPECIFIED
+}
+
+func (x *EdgeOptions) ClearDefault() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 7)
 	x.xxx_hidden_Default = nil
 }
 
@@ -878,6 +905,9 @@ type EdgeOptions_builder struct {
 	Unique    *bool
 	Nullable  *bool
 	Immutable *bool
+	// What becomes of this edge's row when the row it names is deleted. Unset is
+	// the storage generator's own default. See OnDelete.
+	OnDelete *OnDelete
 	// TODO: Any?
 	Default *string
 }
@@ -887,25 +917,29 @@ func (b0 EdgeOptions_builder) Build() *EdgeOptions {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Disabled != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 8)
 		x.xxx_hidden_Disabled = *b.Disabled
 	}
 	x.xxx_hidden_Bind = b.Bind
 	x.xxx_hidden_From = b.From
 	if b.Unique != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 8)
 		x.xxx_hidden_Unique = *b.Unique
 	}
 	if b.Nullable != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 8)
 		x.xxx_hidden_Nullable = *b.Nullable
 	}
 	if b.Immutable != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 8)
 		x.xxx_hidden_Immutable = *b.Immutable
 	}
+	if b.OnDelete != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 6, 8)
+		x.xxx_hidden_OnDelete = *b.OnDelete
+	}
 	if b.Default != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 6, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 7, 8)
 		x.xxx_hidden_Default = b.Default
 	}
 	return m0
@@ -1016,7 +1050,7 @@ var File_orm_options_proto protoreflect.FileDescriptor
 
 const file_orm_options_proto_rawDesc = "" +
 	"\n" +
-	"\x11orm/options.proto\x12\x03orm\x1a\x0form/index.proto\x1a\rorm/ref.proto\x1a\rorm/rpc.proto\x1a\x0eorm/type.proto\"\xe1\x01\n" +
+	"\x11orm/options.proto\x12\x03orm\x1a\x0form/index.proto\x1a\x13orm/on_delete.proto\x1a\rorm/ref.proto\x1a\rorm/rpc.proto\x1a\x0eorm/type.proto\"\xe1\x01\n" +
 	"\n" +
 	"RpcOptions\x12\x1a\n" +
 	"\bdisabled\x18\x01 \x01(\bR\bdisabled\x12\x1d\n" +
@@ -1039,14 +1073,15 @@ const file_orm_options_proto_rawDesc = "" +
 	"\timmutable\x18\b \x01(\bR\timmutable\x12\x18\n" +
 	"\adefault\x18\x10 \x01(\tR\adefault\x12-\n" +
 	"\aversion\x18\x11 \x01(\v2\x13.orm.VersionOptionsR\aversion\x12*\n" +
-	"\x06erased\x18\x12 \x01(\v2\x12.orm.ErasedOptionsR\x06erased\"\xd1\x01\n" +
+	"\x06erased\x18\x12 \x01(\v2\x12.orm.ErasedOptionsR\x06erased\"\xfd\x01\n" +
 	"\vEdgeOptions\x12\x1a\n" +
 	"\bdisabled\x18\x01 \x01(\bR\bdisabled\x12\x1c\n" +
 	"\x04bind\x18\x02 \x01(\v2\b.orm.RefR\x04bind\x12\x1c\n" +
 	"\x04from\x18\x03 \x01(\v2\b.orm.RefR\x04from\x12\x16\n" +
 	"\x06unique\x18\x06 \x01(\bR\x06unique\x12\x1a\n" +
 	"\bnullable\x18\a \x01(\bR\bnullable\x12\x1c\n" +
-	"\timmutable\x18\b \x01(\bR\timmutable\x12\x18\n" +
+	"\timmutable\x18\b \x01(\bR\timmutable\x12*\n" +
+	"\ton_delete\x18\t \x01(\x0e2\r.orm.OnDeleteR\bonDelete\x12\x18\n" +
 	"\adefault\x18\x10 \x01(\tR\adefault\"\x10\n" +
 	"\x0eVersionOptions\"\x0f\n" +
 	"\rErasedOptionsB,Z*github.com/protobuf-orm/protobuf-orm/ormpbb\beditionsp\xe8\a"
@@ -1067,6 +1102,7 @@ var file_orm_options_proto_goTypes = []any{
 	(*Index)(nil),          // 11: orm.Index
 	(Type)(0),              // 12: orm.Type
 	(*Ref)(nil),            // 13: orm.Ref
+	(OnDelete)(0),          // 14: orm.OnDelete
 }
 var file_orm_options_proto_depIdxs = []int32{
 	6,  // 0: orm.RpcOptions.add:type_name -> orm.RpcAdd
@@ -1081,11 +1117,12 @@ var file_orm_options_proto_depIdxs = []int32{
 	5,  // 9: orm.FieldOptions.erased:type_name -> orm.ErasedOptions
 	13, // 10: orm.EdgeOptions.bind:type_name -> orm.Ref
 	13, // 11: orm.EdgeOptions.from:type_name -> orm.Ref
-	12, // [12:12] is the sub-list for method output_type
-	12, // [12:12] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	14, // 12: orm.EdgeOptions.on_delete:type_name -> orm.OnDelete
+	13, // [13:13] is the sub-list for method output_type
+	13, // [13:13] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_orm_options_proto_init() }
@@ -1094,6 +1131,7 @@ func file_orm_options_proto_init() {
 		return
 	}
 	file_orm_index_proto_init()
+	file_orm_on_delete_proto_init()
 	file_orm_ref_proto_init()
 	file_orm_rpc_proto_init()
 	file_orm_type_proto_init()

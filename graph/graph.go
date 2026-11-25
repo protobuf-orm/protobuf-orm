@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"slices"
 
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -65,6 +66,22 @@ func Parse(ctx context.Context, g *Graph, f protoreflect.FileDescriptor) error {
 		g_.Entities[v.FullName()] = v
 	}
 
+	if len(errs) > 0 {
+		return errors.Join(errs...)
+	}
+
+	// What can only be told once every entity is whole: the entities this
+	// file brought, including the ones parsed on the way to an edge's target.
+	for _, name := range slices.Sorted(maps.Keys(g_.Entities)) {
+		if _, ok := g.Entities[name]; ok {
+			continue
+		}
+		for edge := range g_.Entities[name].Edges() {
+			if err := edge.(*protoEdge).checkOnDelete(); err != nil {
+				errs = append(errs, fmt.Errorf("%s: %w", edge.FullName(), err))
+			}
+		}
+	}
 	if len(errs) > 0 {
 		return errors.Join(errs...)
 	}
