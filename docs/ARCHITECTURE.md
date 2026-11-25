@@ -119,13 +119,19 @@ generated request messages.
 ### Rpc
 
 `parseRpcs` (`graph/rpc.go`) turns `MessageOptions.rpc` into a `RpcMap` of up to
-five operations — `Add`, `AddMany`, `Get`, `Patch`, `Erase`. Setting `crud:true`
-enables all but `AddMany`; individual operations can then be disabled. `AddMany`
-is `add.many`, and exists only beside an enabled `Add`; its `RpcAddMany` also
-carries `Max()`, the most items one call may carry (`DefaultAddManyMax` when the
-option says nothing). Each `Rpc` carries the synthesized request/response message
-full-names (e.g. `library.UserAddRequest`, `library.UserAddManyRequest`,
-`library.UserRef`, `google.protobuf.Empty`) under a `<Entity>Service`.
+six operations — `Add`, `AddMany`, `Get`, `Patch`, `Apply`, `Erase`. Each is
+there when its own option is set and not disabled, and none brings another;
+`AddMany` is `add.many`, and exists only beside an enabled `Add`. Its
+`RpcAddMany` also carries `Max()`, the most items one call may carry
+(`DefaultAddManyMax` when the option says nothing). Each `Rpc` carries the
+request/response message full-names under a `<Entity>Service` as
+`protoc-gen-orm-service` writes them (e.g. `library.UserAddRequest`,
+`library.UserGetRequest`, `library.UserApplyRequest`, `library.UserRef`,
+`library.UserEraseResponse`).
+
+`parseRpcs` reads the options and does not write to them. It refuses an
+`RpcOptions` that carries a field this `orm` has no name for: number 2 is the
+`crud` that is gone, and any other is a schema compiled against another `orm`.
 
 ### Type mapping
 

@@ -17,25 +17,75 @@ message RpcEnabled {
   };
 }
 
-message RpcCrud {
+message RpcAll {
   int32 id = 1 [(orm.field) = {key: true}];
 
-  // RPCs for CURD are enabled if `orm.message.rpc.crud` is `true`.
+  // Each verb is named, and these are all five of them.
   option (orm.message) = {
-    rpc: {crud: true}
+    rpc: {
+      add: {}
+      get: {}
+      patch: {}
+      apply: {}
+      erase: {}
+    }
   };
 }
 
-message RpcCrudExclude {
+message RpcAddDisabled {
   int32 id = 1 [(orm.field) = {key: true}];
 
-  // RPCs for CURD are enabled if `orm.message.rpc.crud` is `true`
-  // except for the RPC which is disabled explicitly.
+  // A verb that is named and disabled is not there.
   option (orm.message) = {
     rpc: {
-      crud: true
       add: {disabled: true}
+      get: {}
+      patch: {}
+      erase: {}
     }
+  };
+}
+
+message RpcPatchAlone {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // Patch does not bring Apply.
+  option (orm.message) = {
+    rpc: {
+      patch: {}
+    }
+  };
+}
+
+message RpcApplyAlone {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // Nor does Apply need Patch.
+  option (orm.message) = {
+    rpc: {
+      apply: {}
+    }
+  };
+}
+
+message RpcApplyDisabled {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // An Apply that is disabled is not there, Patch or no Patch.
+  option (orm.message) = {
+    rpc: {
+      patch: {}
+      apply: {disabled: true}
+    }
+  };
+}
+
+message RpcEmpty {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // An `orm.message.rpc` that names no verb has none.
+  option (orm.message) = {
+    rpc: {}
   };
 }
 
@@ -89,11 +139,13 @@ message RpcAddManyWithoutAdd {
   // An Add that is disabled takes its AddMany with it.
   option (orm.message) = {
     rpc: {
-      crud: true
       add: {
         disabled: true
         many: {}
       }
+      get: {}
+      patch: {}
+      erase: {}
     }
   };
 }

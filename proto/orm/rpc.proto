@@ -37,6 +37,20 @@ message RpcPatch {
   bool disabled = 1;
 }
 
+// RpcApply is Apply, which writes what a patch document says to a row that is
+// there.
+//
+// Its request is the entity's Ref and the document, and its answer is the row.
+// What it can say that a PatchRequest cannot is whatever the PatchRequest has
+// no field for: an entry of a map, an element of a list, a test on a column
+// beside the write.
+//
+// It is a verb of its own. It is there when it is asked for, and not because
+// Patch is; an entity may have either without the other.
+message RpcApply {
+  bool disabled = 1;
+}
+
 message RpcErase {
   bool disabled = 1;
 }

@@ -258,7 +258,11 @@ func parseEntity(
 		return nil, errors.Join(errs...)
 	}
 
-	v.rpcs = parseRpcs(ctx, g, v, opts.GetRpc())
+	rpcs, err := parseRpcs(ctx, g, v, opts.GetRpc())
+	if err != nil {
+		return nil, err
+	}
+	v.rpcs = rpcs
 
 	// Validation passed; apply the staged normalizations now (see commits above).
 	for _, commit := range commits {

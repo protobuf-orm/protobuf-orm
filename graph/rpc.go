@@ -2,8 +2,12 @@ package graph
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"slices"
 
 	"github.com/protobuf-orm/protobuf-orm/ormpb"
+	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -18,6 +22,10 @@ type RpcMap interface {
 	GetGet() Rpc
 	HasPatch() bool
 	GetPatch() Rpc
+	// HasApply is whether there is an Apply, which writes a patch document to
+	// a row. It is asked for on its own and does not come with the Patch.
+	HasApply() bool
+	GetApply() Rpc
 	HasErase() bool
 	GetErase() Rpc
 }
@@ -27,6 +35,7 @@ type rpcMap struct {
 	addMany *rpcAddMany
 	get     *rpcGet
 	patch   *rpcPatch
+	apply   *rpcApply
 	erase   *rpcErase
 }
 
@@ -38,6 +47,16 @@ func (m *rpcMap) HasPatch() bool { return m.patch != nil }
 func (m *rpcMap) GetPatch() Rpc  { return m.patch }
 func (m *rpcMap) HasErase() bool { return m.erase != nil }
 func (m *rpcMap) GetErase() Rpc  { return m.erase }
+
+func (m *rpcMap) HasApply() bool { return m.apply != nil }
+
+// GetApply answers nil, and not a nil *rpcApply, when there is none.
+func (m *rpcMap) GetApply() Rpc {
+	if m.apply == nil {
+		return nil
+	}
+	return m.apply
+}
 
 func (m *rpcMap) HasAddMany() bool { return m.addMany != nil }
 
@@ -67,25 +86,19 @@ type rpc struct {
 	res *rpcMessage
 }
 
-func parseRpcs(ctx context.Context, g *Graph, e *protoEntity, opts *ormpb.RpcOptions) *rpcMap {
-	rpcs := &rpcMap{}
-	if opts.GetDisabled() {
-		return rpcs
+// parseRpcs reads opts and does not write to it: opts is the schema's own,
+// shared by every reader of the descriptor.
+//
+// The names are the ones protoc-gen-orm-service writes, request and answer
+// for every verb.
+func parseRpcs(ctx context.Context, g *Graph, e *protoEntity, opts *ormpb.RpcOptions) (*rpcMap, error) {
+	if err := rpcOptionsKnown(opts); err != nil {
+		return nil, err
 	}
 
-	if opts.GetCrud() {
-		if !opts.HasAdd() {
-			opts.SetAdd(&ormpb.RpcAdd{})
-		}
-		if !opts.HasGet() {
-			opts.SetGet(&ormpb.RpcGet{})
-		}
-		if !opts.HasPatch() {
-			opts.SetPatch(&ormpb.RpcPatch{})
-		}
-		if !opts.HasErase() {
-			opts.SetErase(&ormpb.RpcErase{})
-		}
+	rpcs := &rpcMap{}
+	if opts.GetDisabled() {
+		return rpcs, nil
 	}
 
 	pkg_name := e.FullName().Parent()                 // e.g. library
@@ -125,7 +138,7 @@ func parseRpcs(ctx context.Context, g *Graph, e *protoEntity, opts *ormpb.RpcOpt
 				entity:   e,
 				fullname: svc_name.Append("Get"),
 
-				req: &rpcMessage{fullname: pkg_name.Append(msg_name + "Ref")},
+				req: &rpcMessage{fullname: pkg_name.Append(msg_name + "GetRequest")},
 				res: &rpcMessage{fullname: e.FullName()},
 			},
 			opt: opt,
@@ -138,7 +151,19 @@ func parseRpcs(ctx context.Context, g *Graph, e *protoEntity, opts *ormpb.RpcOpt
 				fullname: svc_name.Append("Patch"),
 
 				req: &rpcMessage{fullname: pkg_name.Append(msg_name + "PatchRequest")},
-				res: &rpcMessage{fullname: "google.protobuf.Empty"},
+				res: &rpcMessage{fullname: e.FullName()},
+			},
+			opt: opt,
+		}
+	}
+	if opt := opts.GetApply(); opts.HasApply() && !opt.GetDisabled() {
+		rpcs.apply = &rpcApply{
+			rpc: rpc{
+				entity:   e,
+				fullname: svc_name.Append("Apply"),
+
+				req: &rpcMessage{fullname: pkg_name.Append(msg_name + "ApplyRequest")},
+				res: &rpcMessage{fullname: e.FullName()},
 			},
 			opt: opt,
 		}
@@ -150,13 +175,43 @@ func parseRpcs(ctx context.Context, g *Graph, e *protoEntity, opts *ormpb.RpcOpt
 				fullname: svc_name.Append("Erase"),
 
 				req: &rpcMessage{fullname: pkg_name.Append(msg_name + "Ref")},
-				res: &rpcMessage{fullname: "google.protobuf.Empty"},
+				res: &rpcMessage{fullname: pkg_name.Append(msg_name + "EraseResponse")},
 			},
 			opt: opt,
 		}
 	}
 
-	return rpcs
+	return rpcs, nil
+}
+
+// rpcOptionsKnown refuses an RpcOptions that carries a field this `orm` has no
+// name for.
+//
+// Such a field is dropped by everything that reads the message, so what it
+// asked for would quietly not happen. That matters most for `crud`: a schema
+// compiled against an `orm` that still had it arrives here with field 2 set
+// and nothing else, which would read as an entity with no verb at all.
+func rpcOptionsKnown(opts *ormpb.RpcOptions) error {
+	unknown := []protowire.Number{}
+	for b := opts.ProtoReflect().GetUnknown(); len(b) > 0; {
+		n, t, l := protowire.ConsumeTag(b)
+		if l < 0 {
+			return fmt.Errorf(": rpc: %w", protowire.ParseError(l))
+		}
+		b = b[l:]
+		if l = protowire.ConsumeFieldValue(n, t, b); l < 0 {
+			return fmt.Errorf(": rpc: %w", protowire.ParseError(l))
+		}
+		b = b[l:]
+		unknown = append(unknown, n)
+	}
+	if len(unknown) == 0 {
+		return nil
+	}
+	if slices.Contains(unknown, 2) {
+		return errors.New(": rpc: crud is gone; name each verb the entity has (add, get, patch, apply, erase), and Apply no longer comes with Patch")
+	}
+	return fmt.Errorf(": rpc: field %d is unknown; the schema was compiled against another orm than this generator was built with", unknown[0])
 }
 
 func (r *rpc) Entity() Entity {
@@ -218,6 +273,11 @@ type rpcGet struct {
 type rpcPatch struct {
 	rpc
 	opt *ormpb.RpcPatch
+}
+
+type rpcApply struct {
+	rpc
+	opt *ormpb.RpcApply
 }
 
 type rpcErase struct {
