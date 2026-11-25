@@ -1,0 +1,19 @@
+edition = "2023";
+
+package graphtest;
+
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
+
+message EdgeOnDeleteO2oTo {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // The key is prev's, written from this one.
+  EdgeOnDeleteO2oTo next = 2 [(orm.edge) = {on_delete: ON_DELETE_CASCADE}];
+  EdgeOnDeleteO2oTo prev = 3 [(orm.edge) = {
+    from: {name: "next", number: 2}
+  }];
+
+  option (orm.message) = {};
+}

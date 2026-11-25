@@ -20,14 +20,29 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// RpcOptions says which verbs an entity's service has.
+//
+// A verb is there when its option is set and not disabled, and no verb brings
+// another: each is asked for by its own name -- `add`, `get`, `patch`, `apply`,
+// `erase`. The one exception is AddMany, which lives inside the Add (see
+// RpcAdd.many) because it is that Add many times.
+//
+// An `rpc: {}` that names no verb is a service with no verb in it. The graph
+// does not refuse it; it answers as it does for an entity with no `rpc` at
+// all, that none of the verbs is there.
+//
+// There was a `crud` here that stood for four of the verbs at once. It is
+// gone, and nothing reads it: a schema names the verbs it means. A schema
+// compiled against an `orm` that still had it is refused by the graph rather
+// than read as having no verb at all.
 type RpcOptions struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Disabled    bool                   `protobuf:"varint,1,opt,name=disabled"`
-	xxx_hidden_Crud        bool                   `protobuf:"varint,2,opt,name=crud"`
 	xxx_hidden_Add         *RpcAdd                `protobuf:"bytes,16,opt,name=add"`
 	xxx_hidden_Get         *RpcGet                `protobuf:"bytes,17,opt,name=get"`
 	xxx_hidden_Patch       *RpcPatch              `protobuf:"bytes,18,opt,name=patch"`
 	xxx_hidden_Erase       *RpcErase              `protobuf:"bytes,19,opt,name=erase"`
+	xxx_hidden_Apply       *RpcApply              `protobuf:"bytes,20,opt,name=apply"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
 	unknownFields          protoimpl.UnknownFields
@@ -66,13 +81,6 @@ func (x *RpcOptions) GetDisabled() bool {
 	return false
 }
 
-func (x *RpcOptions) GetCrud() bool {
-	if x != nil {
-		return x.xxx_hidden_Crud
-	}
-	return false
-}
-
 func (x *RpcOptions) GetAdd() *RpcAdd {
 	if x != nil {
 		return x.xxx_hidden_Add
@@ -101,14 +109,16 @@ func (x *RpcOptions) GetErase() *RpcErase {
 	return nil
 }
 
+func (x *RpcOptions) GetApply() *RpcApply {
+	if x != nil {
+		return x.xxx_hidden_Apply
+	}
+	return nil
+}
+
 func (x *RpcOptions) SetDisabled(v bool) {
 	x.xxx_hidden_Disabled = v
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 6)
-}
-
-func (x *RpcOptions) SetCrud(v bool) {
-	x.xxx_hidden_Crud = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 6)
 }
 
 func (x *RpcOptions) SetAdd(v *RpcAdd) {
@@ -127,18 +137,15 @@ func (x *RpcOptions) SetErase(v *RpcErase) {
 	x.xxx_hidden_Erase = v
 }
 
+func (x *RpcOptions) SetApply(v *RpcApply) {
+	x.xxx_hidden_Apply = v
+}
+
 func (x *RpcOptions) HasDisabled() bool {
 	if x == nil {
 		return false
 	}
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
-}
-
-func (x *RpcOptions) HasCrud() bool {
-	if x == nil {
-		return false
-	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
 }
 
 func (x *RpcOptions) HasAdd() bool {
@@ -169,14 +176,16 @@ func (x *RpcOptions) HasErase() bool {
 	return x.xxx_hidden_Erase != nil
 }
 
+func (x *RpcOptions) HasApply() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Apply != nil
+}
+
 func (x *RpcOptions) ClearDisabled() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
 	x.xxx_hidden_Disabled = false
-}
-
-func (x *RpcOptions) ClearCrud() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
-	x.xxx_hidden_Crud = false
 }
 
 func (x *RpcOptions) ClearAdd() {
@@ -195,16 +204,19 @@ func (x *RpcOptions) ClearErase() {
 	x.xxx_hidden_Erase = nil
 }
 
+func (x *RpcOptions) ClearApply() {
+	x.xxx_hidden_Apply = nil
+}
+
 type RpcOptions_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	Disabled *bool
-	// Enables add, get, patch, and erase.
-	Crud  *bool
-	Add   *RpcAdd
-	Get   *RpcGet
-	Patch *RpcPatch
-	Erase *RpcErase
+	Add      *RpcAdd
+	Get      *RpcGet
+	Patch    *RpcPatch
+	Erase    *RpcErase
+	Apply    *RpcApply
 }
 
 func (b0 RpcOptions_builder) Build() *RpcOptions {
@@ -215,14 +227,11 @@ func (b0 RpcOptions_builder) Build() *RpcOptions {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 6)
 		x.xxx_hidden_Disabled = *b.Disabled
 	}
-	if b.Crud != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 6)
-		x.xxx_hidden_Crud = *b.Crud
-	}
 	x.xxx_hidden_Add = b.Add
 	x.xxx_hidden_Get = b.Get
 	x.xxx_hidden_Patch = b.Patch
 	x.xxx_hidden_Erase = b.Erase
+	x.xxx_hidden_Apply = b.Apply
 	return m0
 }
 
@@ -661,6 +670,7 @@ type EdgeOptions struct {
 	xxx_hidden_Unique      bool                   `protobuf:"varint,6,opt,name=unique"`
 	xxx_hidden_Nullable    bool                   `protobuf:"varint,7,opt,name=nullable"`
 	xxx_hidden_Immutable   bool                   `protobuf:"varint,8,opt,name=immutable"`
+	xxx_hidden_OnDelete    OnDelete               `protobuf:"varint,9,opt,name=on_delete,json=onDelete,enum=orm.OnDelete"`
 	xxx_hidden_Default     *string                `protobuf:"bytes,16,opt,name=default"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
@@ -735,6 +745,15 @@ func (x *EdgeOptions) GetImmutable() bool {
 	return false
 }
 
+func (x *EdgeOptions) GetOnDelete() OnDelete {
+	if x != nil {
+		if protoimpl.X.Present(&(x.XXX_presence[0]), 6) {
+			return x.xxx_hidden_OnDelete
+		}
+	}
+	return OnDelete_ON_DELETE_UNSPECIFIED
+}
+
 func (x *EdgeOptions) GetDefault() string {
 	if x != nil {
 		if x.xxx_hidden_Default != nil {
@@ -747,7 +766,7 @@ func (x *EdgeOptions) GetDefault() string {
 
 func (x *EdgeOptions) SetDisabled(v bool) {
 	x.xxx_hidden_Disabled = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 8)
 }
 
 func (x *EdgeOptions) SetBind(v *Ref) {
@@ -760,22 +779,27 @@ func (x *EdgeOptions) SetFrom(v *Ref) {
 
 func (x *EdgeOptions) SetUnique(v bool) {
 	x.xxx_hidden_Unique = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 8)
 }
 
 func (x *EdgeOptions) SetNullable(v bool) {
 	x.xxx_hidden_Nullable = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 8)
 }
 
 func (x *EdgeOptions) SetImmutable(v bool) {
 	x.xxx_hidden_Immutable = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 8)
+}
+
+func (x *EdgeOptions) SetOnDelete(v OnDelete) {
+	x.xxx_hidden_OnDelete = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 6, 8)
 }
 
 func (x *EdgeOptions) SetDefault(v string) {
 	x.xxx_hidden_Default = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 6, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 7, 8)
 }
 
 func (x *EdgeOptions) HasDisabled() bool {
@@ -820,11 +844,18 @@ func (x *EdgeOptions) HasImmutable() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 5)
 }
 
-func (x *EdgeOptions) HasDefault() bool {
+func (x *EdgeOptions) HasOnDelete() bool {
 	if x == nil {
 		return false
 	}
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 6)
+}
+
+func (x *EdgeOptions) HasDefault() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 7)
 }
 
 func (x *EdgeOptions) ClearDisabled() {
@@ -855,8 +886,13 @@ func (x *EdgeOptions) ClearImmutable() {
 	x.xxx_hidden_Immutable = false
 }
 
-func (x *EdgeOptions) ClearDefault() {
+func (x *EdgeOptions) ClearOnDelete() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 6)
+	x.xxx_hidden_OnDelete = OnDelete_ON_DELETE_UNSPECIFIED
+}
+
+func (x *EdgeOptions) ClearDefault() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 7)
 	x.xxx_hidden_Default = nil
 }
 
@@ -869,6 +905,9 @@ type EdgeOptions_builder struct {
 	Unique    *bool
 	Nullable  *bool
 	Immutable *bool
+	// What becomes of this edge's row when the row it names is deleted. Unset is
+	// the storage generator's own default. See OnDelete.
+	OnDelete *OnDelete
 	// TODO: Any?
 	Default *string
 }
@@ -878,25 +917,29 @@ func (b0 EdgeOptions_builder) Build() *EdgeOptions {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Disabled != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 8)
 		x.xxx_hidden_Disabled = *b.Disabled
 	}
 	x.xxx_hidden_Bind = b.Bind
 	x.xxx_hidden_From = b.From
 	if b.Unique != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 8)
 		x.xxx_hidden_Unique = *b.Unique
 	}
 	if b.Nullable != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 8)
 		x.xxx_hidden_Nullable = *b.Nullable
 	}
 	if b.Immutable != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 8)
 		x.xxx_hidden_Immutable = *b.Immutable
 	}
+	if b.OnDelete != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 6, 8)
+		x.xxx_hidden_OnDelete = *b.OnDelete
+	}
 	if b.Default != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 6, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 7, 8)
 		x.xxx_hidden_Default = b.Default
 	}
 	return m0
@@ -1007,15 +1050,15 @@ var File_orm_options_proto protoreflect.FileDescriptor
 
 const file_orm_options_proto_rawDesc = "" +
 	"\n" +
-	"\x11orm/options.proto\x12\x03orm\x1a\x0form/index.proto\x1a\rorm/ref.proto\x1a\rorm/rpc.proto\x1a\x0eorm/type.proto\"\xc4\x01\n" +
+	"\x11orm/options.proto\x12\x03orm\x1a\x0form/index.proto\x1a\x13orm/on_delete.proto\x1a\rorm/ref.proto\x1a\rorm/rpc.proto\x1a\x0eorm/type.proto\"\xe1\x01\n" +
 	"\n" +
 	"RpcOptions\x12\x1a\n" +
-	"\bdisabled\x18\x01 \x01(\bR\bdisabled\x12\x12\n" +
-	"\x04crud\x18\x02 \x01(\bR\x04crud\x12\x1d\n" +
+	"\bdisabled\x18\x01 \x01(\bR\bdisabled\x12\x1d\n" +
 	"\x03add\x18\x10 \x01(\v2\v.orm.RpcAddR\x03add\x12\x1d\n" +
 	"\x03get\x18\x11 \x01(\v2\v.orm.RpcGetR\x03get\x12#\n" +
 	"\x05patch\x18\x12 \x01(\v2\r.orm.RpcPatchR\x05patch\x12#\n" +
-	"\x05erase\x18\x13 \x01(\v2\r.orm.RpcEraseR\x05erase\"u\n" +
+	"\x05erase\x18\x13 \x01(\v2\r.orm.RpcEraseR\x05erase\x12#\n" +
+	"\x05apply\x18\x14 \x01(\v2\r.orm.RpcApplyR\x05applyJ\x04\b\x02\x10\x03R\x04crud\"u\n" +
 	"\x0eMessageOptions\x12\x1a\n" +
 	"\bdisabled\x18\x01 \x01(\bR\bdisabled\x12!\n" +
 	"\x03rpc\x18\x02 \x01(\v2\x0f.orm.RpcOptionsR\x03rpc\x12$\n" +
@@ -1030,14 +1073,15 @@ const file_orm_options_proto_rawDesc = "" +
 	"\timmutable\x18\b \x01(\bR\timmutable\x12\x18\n" +
 	"\adefault\x18\x10 \x01(\tR\adefault\x12-\n" +
 	"\aversion\x18\x11 \x01(\v2\x13.orm.VersionOptionsR\aversion\x12*\n" +
-	"\x06erased\x18\x12 \x01(\v2\x12.orm.ErasedOptionsR\x06erased\"\xd1\x01\n" +
+	"\x06erased\x18\x12 \x01(\v2\x12.orm.ErasedOptionsR\x06erased\"\xfd\x01\n" +
 	"\vEdgeOptions\x12\x1a\n" +
 	"\bdisabled\x18\x01 \x01(\bR\bdisabled\x12\x1c\n" +
 	"\x04bind\x18\x02 \x01(\v2\b.orm.RefR\x04bind\x12\x1c\n" +
 	"\x04from\x18\x03 \x01(\v2\b.orm.RefR\x04from\x12\x16\n" +
 	"\x06unique\x18\x06 \x01(\bR\x06unique\x12\x1a\n" +
 	"\bnullable\x18\a \x01(\bR\bnullable\x12\x1c\n" +
-	"\timmutable\x18\b \x01(\bR\timmutable\x12\x18\n" +
+	"\timmutable\x18\b \x01(\bR\timmutable\x12*\n" +
+	"\ton_delete\x18\t \x01(\x0e2\r.orm.OnDeleteR\bonDelete\x12\x18\n" +
 	"\adefault\x18\x10 \x01(\tR\adefault\"\x10\n" +
 	"\x0eVersionOptions\"\x0f\n" +
 	"\rErasedOptionsB,Z*github.com/protobuf-orm/protobuf-orm/ormpbb\beditionsp\xe8\a"
@@ -1054,27 +1098,31 @@ var file_orm_options_proto_goTypes = []any{
 	(*RpcGet)(nil),         // 7: orm.RpcGet
 	(*RpcPatch)(nil),       // 8: orm.RpcPatch
 	(*RpcErase)(nil),       // 9: orm.RpcErase
-	(*Index)(nil),          // 10: orm.Index
-	(Type)(0),              // 11: orm.Type
-	(*Ref)(nil),            // 12: orm.Ref
+	(*RpcApply)(nil),       // 10: orm.RpcApply
+	(*Index)(nil),          // 11: orm.Index
+	(Type)(0),              // 12: orm.Type
+	(*Ref)(nil),            // 13: orm.Ref
+	(OnDelete)(0),          // 14: orm.OnDelete
 }
 var file_orm_options_proto_depIdxs = []int32{
 	6,  // 0: orm.RpcOptions.add:type_name -> orm.RpcAdd
 	7,  // 1: orm.RpcOptions.get:type_name -> orm.RpcGet
 	8,  // 2: orm.RpcOptions.patch:type_name -> orm.RpcPatch
 	9,  // 3: orm.RpcOptions.erase:type_name -> orm.RpcErase
-	0,  // 4: orm.MessageOptions.rpc:type_name -> orm.RpcOptions
-	10, // 5: orm.MessageOptions.indexes:type_name -> orm.Index
-	11, // 6: orm.FieldOptions.type:type_name -> orm.Type
-	4,  // 7: orm.FieldOptions.version:type_name -> orm.VersionOptions
-	5,  // 8: orm.FieldOptions.erased:type_name -> orm.ErasedOptions
-	12, // 9: orm.EdgeOptions.bind:type_name -> orm.Ref
-	12, // 10: orm.EdgeOptions.from:type_name -> orm.Ref
-	11, // [11:11] is the sub-list for method output_type
-	11, // [11:11] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	10, // 4: orm.RpcOptions.apply:type_name -> orm.RpcApply
+	0,  // 5: orm.MessageOptions.rpc:type_name -> orm.RpcOptions
+	11, // 6: orm.MessageOptions.indexes:type_name -> orm.Index
+	12, // 7: orm.FieldOptions.type:type_name -> orm.Type
+	4,  // 8: orm.FieldOptions.version:type_name -> orm.VersionOptions
+	5,  // 9: orm.FieldOptions.erased:type_name -> orm.ErasedOptions
+	13, // 10: orm.EdgeOptions.bind:type_name -> orm.Ref
+	13, // 11: orm.EdgeOptions.from:type_name -> orm.Ref
+	14, // 12: orm.EdgeOptions.on_delete:type_name -> orm.OnDelete
+	13, // [13:13] is the sub-list for method output_type
+	13, // [13:13] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_orm_options_proto_init() }
@@ -1083,6 +1131,7 @@ func file_orm_options_proto_init() {
 		return
 	}
 	file_orm_index_proto_init()
+	file_orm_on_delete_proto_init()
 	file_orm_ref_proto_init()
 	file_orm_rpc_proto_init()
 	file_orm_type_proto_init()

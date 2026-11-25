@@ -1,0 +1,74 @@
+edition = "2023";
+
+package graphtest;
+
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
+
+message OnDeleteTarget {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  option (orm.message) = {};
+}
+
+// Each edge says what becomes of its row when the row it names is deleted.
+message OnDelete {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // Says nothing, so the storage generator's own default holds.
+  OnDeleteTarget unspecified = 2 [(orm.edge) = {}];
+  // The target cannot be deleted while this row names it.
+  OnDeleteTarget restrict = 3 [(orm.edge) = {on_delete: ON_DELETE_RESTRICT}];
+  // This row is deleted with the target.
+  OnDeleteTarget cascade = 4 [(orm.edge) = {on_delete: ON_DELETE_CASCADE}];
+  // The edge is cleared, which it can be because it is nullable.
+  OnDeleteTarget set_null = 5 [(orm.edge) = {
+    nullable: true
+    on_delete: ON_DELETE_SET_NULL
+  }];
+
+  option (orm.message) = {};
+}
+
+// A many-to-one, both sides declared: the single side holds the key, whichever
+// side is written with `from`.
+message OnDeleteTree {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // The single edge with no inverse, whose reverse is a list.
+  OnDeleteTree parent = 2 [(orm.edge) = {on_delete: ON_DELETE_CASCADE}];
+  repeated OnDeleteTree children = 3 [(orm.edge) = {
+    from: {name: "parent", number: 2}
+  }];
+
+  option (orm.message) = {};
+}
+
+message OnDeleteGroup {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  repeated OnDeleteGroup members = 2 [(orm.edge) = {}];
+  // The single edge written from a list.
+  OnDeleteGroup group = 3 [(orm.edge) = {
+    from: {name: "members", number: 2}
+    nullable: true
+    on_delete: ON_DELETE_SET_NULL
+  }];
+
+  option (orm.message) = {};
+}
+
+// A one-to-one: the side written with `from` holds the key.
+message OnDeleteNode {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  OnDeleteNode next = 2 [(orm.edge) = {}];
+  // The single edge written from a single edge.
+  OnDeleteNode prev = 3 [(orm.edge) = {
+    from: {name: "next", number: 2}
+    on_delete: ON_DELETE_RESTRICT
+  }];
+
+  option (orm.message) = {};
+}

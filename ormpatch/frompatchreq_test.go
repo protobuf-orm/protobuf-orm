@@ -340,6 +340,47 @@ func TestVersion(t *testing.T) {
 	})
 }
 
+// The erased field is not in a PatchRequest, so the converter never meets it.
+// An Apply carries its document straight to Compile, and there a document that
+// names it is refused as one that writes the version is: a row is erased by
+// asking to erase it, and one whose date is cleared is a delete undone, which
+// no RPC means.
+func TestErased(t *testing.T) {
+	t.Run("a document that writes the erased field is refused", withErased(func(p *probe) {
+		_, err := compile(p.x, p.e, patch.Target(patch.Name("erased_at")).
+			Assign(patch.Msg(patch.F(patch.Name("seconds"), patch.Int64(999)))))
+
+		eerr := &ormpatch.ErasedWriteError{}
+		p.x.ErrorAs(err, &eerr)
+		p.x.Equal("erased_at", eerr.Prop)
+		p.x.ErrorContains(err, "erased_at says whether the row is erased, which the server stamps: a row is erased by asking to erase it, and a patch may test it but not write it")
+	}))
+
+	t.Run("a document that clears the erased field is refused", withErased(func(p *probe) {
+		_, err := compile(p.x, p.e, patch.Target(patch.Name("erased_at")).Remove())
+
+		eerr := &ormpatch.ErasedWriteError{}
+		p.x.ErrorAs(err, &eerr)
+		p.x.Equal("erased_at", eerr.Prop)
+	}))
+
+	t.Run("a document that tests the erased field compiles", withErased(func(p *probe) {
+		plan, err := compile(p.x, p.e, patch.Target(patch.Name("erased_at")).
+			Test(patch.Msg(patch.F(patch.Name("seconds"), patch.Int64(999)))))
+
+		p.x.NoError(err)
+		p.x.Len(plan.Tests, 1)
+		p.x.Empty(plan.Writes)
+	}))
+
+	t.Run("and the other columns are written as ever", withErased(func(p *probe) {
+		plan, err := compile(p.x, p.e, patch.Target(patch.Name("name")).Assign(patch.Str("Ada")))
+
+		p.x.NoError(err)
+		p.x.Len(plan.Writes, 1)
+	}))
+}
+
 func TestEdge(t *testing.T) {
 	// resolveByID reads the Ref's `id` arm. A real resolver would fall back to
 	// a database read for a ref that names a non-key field.

@@ -1,0 +1,16 @@
+edition = "2023";
+
+package graphtest;
+
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
+
+message EdgeOnDeleteList {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  // A list holds no key of its own.
+  repeated EdgeOnDeleteList items = 2 [(orm.edge) = {on_delete: ON_DELETE_RESTRICT}];
+
+  option (orm.message) = {};
+}

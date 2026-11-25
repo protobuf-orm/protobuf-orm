@@ -55,7 +55,7 @@ fields through proto extensions declared in `proto/orm.proto`:
   `immutable`, `default`, `type`, `version`, `erased`.
 - `[(orm.edge) = {...}]` → `EdgeOptions` — marks a field as an **Edge** prop (a
   relation to another Entity) and sets `bind`, `from`, `unique`, `nullable`,
-  `immutable`, `default`.
+  `immutable`, `default`, `on_delete`.
 
 A field may carry **at most one** of `orm.field` / `orm.edge`. If it carries
 neither, it is treated as a field and its `Type` is deduced from the proto kind.
@@ -89,7 +89,12 @@ is always *either* a `Field` *or* an `Edge`:
   `version` field for optimistic locking.
 - **Edge** (`graph/edge.go`) — backed by a message field that points at another
   Entity. Tracks `Target()`, `Inverse()` (the back-reference edge it declares
-  via `from:`) and `Reverse()` (the edge on the target that points back here).
+  via `from:`) and `Reverse()` (the edge on the target that points back here),
+  and `OnDelete()`, what becomes of its row when the row it names is deleted.
+  Only the edge that holds the key may say that: one that is not a list,
+  unless it is the To side of a one-to-one (no `Inverse()`, and a `Reverse()`
+  that is not a list). It is checked at the end of `Parse`, once every entity
+  of the file is whole (see [Parsing pipeline](#parsing-pipeline)).
 
 `Prop` exposes presence/constraint predicates: `IsList`, `IsUnique`,
 `IsNullable`, `IsImmutable`, `IsOptional`, `HasDefault`.
@@ -119,13 +124,19 @@ generated request messages.
 ### Rpc
 
 `parseRpcs` (`graph/rpc.go`) turns `MessageOptions.rpc` into a `RpcMap` of up to
-five operations — `Add`, `AddMany`, `Get`, `Patch`, `Erase`. Setting `crud:true`
-enables all but `AddMany`; individual operations can then be disabled. `AddMany`
-is `add.many`, and exists only beside an enabled `Add`; its `RpcAddMany` also
-carries `Max()`, the most items one call may carry (`DefaultAddManyMax` when the
-option says nothing). Each `Rpc` carries the synthesized request/response message
-full-names (e.g. `library.UserAddRequest`, `library.UserAddManyRequest`,
-`library.UserRef`, `google.protobuf.Empty`) under a `<Entity>Service`.
+six operations — `Add`, `AddMany`, `Get`, `Patch`, `Apply`, `Erase`. Each is
+there when its own option is set and not disabled, and none brings another;
+`AddMany` is `add.many`, and exists only beside an enabled `Add`. Its
+`RpcAddMany` also carries `Max()`, the most items one call may carry
+(`DefaultAddManyMax` when the option says nothing). Each `Rpc` carries the
+request/response message full-names under a `<Entity>Service` as
+`protoc-gen-orm-service` writes them (e.g. `library.UserAddRequest`,
+`library.UserGetRequest`, `library.UserApplyRequest`, `library.UserRef`,
+`library.UserEraseResponse`).
+
+`parseRpcs` reads the options and does not write to them. It refuses an
+`RpcOptions` that carries a field this `orm` has no name for: number 2 is the
+`crud` that is gone, and any other is a schema compiled against another `orm`.
 
 ### Type mapping
 
@@ -152,9 +163,15 @@ type to its storage category.
    - Resolves the **key** (exactly one `key:true` field; made implicitly unique
      and immutable) and validates key constraints.
    - Parses **indexes**.
-   - Resolves edge **inverses** via `from:` back-references, inferring O2O vs
-     O2M cardinality and unique-ness.
    - Parses **RPCs**.
+4. Once every entity of the file is parsed, with the ones parsed on the way to
+   an edge's target among them:
+   - Resolves edge **inverses** via `from:` back-references, inferring O2O vs
+     O2M cardinality and unique-ness. It waits until here so that `from` finds
+     its edge wherever each is declared: a target parsed on the way to the
+     entity that names it does not yet have all of its edges.
+   - Checks each edge's `on_delete`, which reads the inverses.
+   - Applies what a one-to-one makes of its pair, and merges the clone back.
 
 `graph.ParseFiles(ctx, g, []*protogen.File)` is the protoc-plugin entry point:
 it parses every file marked for generation.

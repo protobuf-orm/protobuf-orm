@@ -1,0 +1,20 @@
+edition = "2023";
+
+package graphtest;
+
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
+
+message EdgeOnDeleteFromList {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  EdgeOnDeleteFromList parent = 2 [(orm.edge) = {}];
+  // A list holds no key, `from` or not.
+  repeated EdgeOnDeleteFromList children = 3 [(orm.edge) = {
+    from: {name: "parent", number: 2}
+    on_delete: ON_DELETE_CASCADE
+  }];
+
+  option (orm.message) = {};
+}

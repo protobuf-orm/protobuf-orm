@@ -47,7 +47,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the internal design.
 | **Edge**    | `[(orm.edge) = {...}]`        | A relation to another entity.                               |
 | **Key**     | `(orm.field) = {key: true}`   | The entity's primary key (implicitly unique & immutable).   |
 | **Index**   | `(orm.message).indexes`       | A (optionally unique) index over one or more props.         |
-| **RPC**     | `(orm.message).rpc`           | Generated `Add` / `AddMany` / `Get` / `Patch` / `Erase` operations. |
+| **RPC**     | `(orm.message).rpc`           | Generated `Add` / `AddMany` / `Get` / `Patch` / `Apply` / `Erase` operations. |
 
 A **Prop** is the umbrella term for "a member of an entity" — every prop is
 either a Field or an Edge.
@@ -84,7 +84,9 @@ message User {
     default: ""
   }];
 
-  option (orm.message) = {rpc: {crud: true}};
+  option (orm.message) = {
+    rpc: {add: {}, get: {}, patch: {}, erase: {}}
+  };
 }
 ```
 
@@ -259,6 +261,33 @@ Cardinality and uniqueness are inferred: a non-repeated edge on both sides is
 treated as one-to-one (and marked unique); a `unique` edge cannot be
 `repeated`.
 
+`orm.edge` options: `bind`, `from`, `unique`, `nullable`, `immutable`,
+`default`, `on_delete`, `disabled`.
+
+`on_delete` says what becomes of the edge's row when the row it names is
+deleted, and `Edge.OnDelete()` answers it:
+
+- `ON_DELETE_UNSPECIFIED` (unset) -- the storage generator's own default, as
+  before there was this option.
+- `ON_DELETE_RESTRICT` -- the delete is refused while a row names it.
+- `ON_DELETE_CASCADE` -- the row is deleted with it.
+- `ON_DELETE_SET_NULL` -- the edge is cleared; refused on an edge that is not
+  nullable.
+
+```proto
+Tenant tenant = 2 [(orm.edge) = {on_delete: ON_DELETE_CASCADE}];
+```
+
+It is said on the edge that holds the key, since that is the row a delete
+reaches. An edge holds the key when it is not `repeated`, unless it is the side
+of a one-to-one that the other is written `from`: there the key is on the
+other side. So `User.parent` holds it beside `children` written from it, and
+in a `next`/`prev` pair written `prev from next`, `prev` holds it. On a list,
+or on `next`, it is refused, and the refusal names the edge to say it on.
+It is about a row that is really deleted: a row
+[erased softly](#erased-fields-soft-deletion) is not deleted, so nothing here
+happens to what names it.
+
 ### Indexes
 
 Indexes are declared on the message option and reference props by **name and
@@ -355,7 +384,9 @@ writing `nullable: false` beside it is refused rather than quietly overruled.
 generated PatchRequest, so `graph.PatchProps` does not yield it. A request that
 could assign the date would be a second way to erase a row -- one that skips
 whatever `Erase` does besides writing the column -- and one that could *clear*
-it would be a delete undone, which no RPC means.
+it would be a delete undone, which no RPC means. An Apply's document is held to
+the same rule: `assign` and `remove` on the erased field are refused with
+`ormpatch.ErasedWriteError`, and a `test` on it compiles as any other.
 
 **A unique index covers only the rows that are still there.** This is the part
 that is easy to get wrong and is therefore the default: a soft-deleted row goes
@@ -389,25 +420,39 @@ referred to it.
 
 ### RPCs
 
-`orm.message.rpc` generates CRUD service operations. `crud: true` enables all
-four; individual operations can be added one at a time or disabled.
+`orm.message.rpc` says which verbs the entity's service has. A verb is there
+when its option is set and not disabled, and no verb brings another: each is
+named on its own. For an entity `library.User`, in a `library.UserService`:
+
+- `add: {}` -- `Add(UserAddRequest) -> User`, which adds a row.
+- `add: {many: {}}` -- `AddMany(UserAddManyRequest) -> UserAddManyResponse`
+  beside the Add, and only with one: a list of Add requests in, the rows they
+  added out, in the same order, in one transaction. `many: {max: 200}` bounds
+  the items a call may carry; it is 1000 when unset, and a call with more is
+  refused.
+- `get: {}` -- `Get(UserGetRequest) -> User`, which reads a row: its `ref` and
+  a `select`.
+- `patch: {}` -- `Patch(UserPatchRequest) -> User`, which writes the fields a
+  request sets to a row that is there, and answers the row as it is after.
+- `apply: {}` -- `Apply(UserApplyRequest) -> User`, which writes what a patch
+  document says to a row that is there, and can say what a PatchRequest has no
+  field for. It does not come with Patch, nor Patch with it.
+- `erase: {}` -- `Erase(UserRef) -> UserEraseResponse`, which erases a row and
+  answers whether this call is the one that erased it.
 
 ```proto
-option (orm.message) = {rpc: {crud: true}};                    // Add+Get+Patch+Erase
-option (orm.message) = {rpc: {add: {}}};                       // only Add
-option (orm.message) = {rpc: {crud: true, add: {disabled: true}}}; // all but Add
-option (orm.message) = {rpc: {crud: true, add: {many: {}}}};   // and AddMany
+option (orm.message) = {rpc: {add: {}, get: {}}};                    // Add and Get
+option (orm.message) = {rpc: {patch: {}, apply: {disabled: true}}};  // Patch alone
+option (orm.message) = {rpc: {}};                                    // no verb
 ```
 
-For an entity `library.User` this yields a `library.UserService` with, e.g.,
-`Add(UserAddRequest) -> User`, `Get(UserRef) -> User`, `Patch(UserPatchRequest)
--> google.protobuf.Empty`, and `Erase(UserRef) -> google.protobuf.Empty`.
+`disabled: true` on a verb takes it away, and on `rpc` itself takes them all.
+An `rpc: {}` that names no verb is a service with none, as an entity with no
+`rpc` is.
 
-`add.many` adds `AddMany(UserAddManyRequest) -> UserAddManyResponse` beside the
-Add, which `crud` does not: a list of Add requests in, the rows they added out,
-in the same order. Each item is added as Add would add it and the call is one
-transaction, all of the rows or none. `many: {max: 200}` bounds the items one
-call may carry; it is 1000 when unset, and a call with more is refused.
+There was a `crud: true` that stood for Add, Get, Patch and Erase. It is gone:
+a schema that says it no longer compiles, and one compiled against an `orm`
+that still had it is refused by the graph rather than read as having no verb.
 
 ## Using the graph
 
@@ -424,6 +469,7 @@ entity.Indexes()             // iter.Seq[Index]
 entity.Keys()                // iter.Seq[Elem] — every unique prop/index
 entity.Rpcs().HasAdd()       // RPC presence
 entity.Rpcs().GetAddMany()   // nil, or AddMany and its Max()
+entity.Rpcs().HasApply()     // Apply, which Patch does not bring
 entity.HasVersionField()     // optimistic locking
 ```
 

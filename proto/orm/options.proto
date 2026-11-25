@@ -3,22 +3,39 @@ edition = "2023";
 package orm;
 
 import "orm/index.proto";
+import "orm/on_delete.proto";
 import "orm/ref.proto";
 import "orm/rpc.proto";
 import "orm/type.proto";
 
 option go_package = "github.com/protobuf-orm/protobuf-orm/ormpb";
 
+// RpcOptions says which verbs an entity's service has.
+//
+// A verb is there when its option is set and not disabled, and no verb brings
+// another: each is asked for by its own name -- `add`, `get`, `patch`, `apply`,
+// `erase`. The one exception is AddMany, which lives inside the Add (see
+// RpcAdd.many) because it is that Add many times.
+//
+// An `rpc: {}` that names no verb is a service with no verb in it. The graph
+// does not refuse it; it answers as it does for an entity with no `rpc` at
+// all, that none of the verbs is there.
+//
+// There was a `crud` here that stood for four of the verbs at once. It is
+// gone, and nothing reads it: a schema names the verbs it means. A schema
+// compiled against an `orm` that still had it is refused by the graph rather
+// than read as having no verb at all.
 message RpcOptions {
-  bool disabled = 1;
+  reserved 2;
+  reserved crud;
 
-  // Enables add, get, patch, and erase.
-  bool crud = 2;
+  bool disabled = 1;
 
   RpcAdd add = 16;
   RpcGet get = 17;
   RpcPatch patch = 18;
   RpcErase erase = 19;
+  RpcApply apply = 20;
 }
 
 message MessageOptions {
@@ -53,6 +70,10 @@ message EdgeOptions {
   bool unique = 6;
   bool nullable = 7;
   bool immutable = 8;
+
+  // What becomes of this edge's row when the row it names is deleted. Unset is
+  // the storage generator's own default. See OnDelete.
+  OnDelete on_delete = 9;
 
   // TODO: Any?
   string default = 16;

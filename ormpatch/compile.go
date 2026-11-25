@@ -753,16 +753,20 @@ func (c *compiler) testAbsent(e *patchpb.Entry, at patch.At) error {
 
 // mutable refuses a write the schema does not allow.
 //
-// Both refusals live here rather than in the request converter because a
+// The refusals live here rather than in the request converter because a
 // document reaches a backend through two doors -- an Apply carries one
 // directly, a Patch converts its request into one -- and a rule enforced at
-// only one of them is not a rule.
+// only one of them is not a rule. The erased field shows it: a PatchRequest has
+// no field for it at all, so this is the only door it could come through.
 func (c *compiler) mutable(v graph.Prop, at patch.At) error {
 	if v.IsImmutable() {
 		return &ImmutableError{At: at, Prop: v.Name()}
 	}
 	if f, ok := v.(graph.Field); ok && f.IsVersion() {
 		return &VersionWriteError{At: at, Prop: v.Name()}
+	}
+	if f, ok := v.(graph.Field); ok && f.IsErased() {
+		return &ErasedWriteError{At: at, Prop: v.Name()}
 	}
 	return nil
 }

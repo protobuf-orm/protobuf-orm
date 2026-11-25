@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"slices"
 
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -67,6 +68,47 @@ func Parse(ctx context.Context, g *Graph, f protoreflect.FileDescriptor) error {
 
 	if len(errs) > 0 {
 		return errors.Join(errs...)
+	}
+
+	// What can only be told once every entity is whole: the entities this
+	// file brought, including the ones parsed on the way to an edge's target.
+	added := []*protoEntity{}
+	for _, name := range slices.Sorted(maps.Keys(g_.Entities)) {
+		if _, ok := g.Entities[name]; ok {
+			continue
+		}
+		added = append(added, g_.Entities[name].(*protoEntity))
+	}
+
+	// Inverses first, since which edge holds the key is read from them. What a
+	// one-to-one makes of its pair is staged, and applied only once nothing
+	// below refuses the file: it may write to an entity of an earlier file.
+	commits := []func(){}
+	for _, v := range added {
+		cs, err := v.resolveInverses()
+		if err != nil {
+			errs = append(errs, fmt.Errorf("%s%w", v.FullName(), err))
+			continue
+		}
+		commits = append(commits, cs...)
+	}
+	if len(errs) > 0 {
+		return errors.Join(errs...)
+	}
+
+	for _, v := range added {
+		for edge := range v.Edges() {
+			if err := edge.(*protoEdge).checkOnDelete(); err != nil {
+				errs = append(errs, fmt.Errorf("%s: %w", edge.FullName(), err))
+			}
+		}
+	}
+	if len(errs) > 0 {
+		return errors.Join(errs...)
+	}
+
+	for _, commit := range commits {
+		commit()
 	}
 
 	g.InPlaceMerge(g_)
