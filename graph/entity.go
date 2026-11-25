@@ -97,12 +97,11 @@ func parseEntity(
 
 	errs := []error{}
 
-	// Normalizations (e.g. marking the key or an O2O edge unique) are collected
-	// here and applied only once the whole entity has validated successfully.
-	// Some of them mutate options that belong to *other*, already-parsed
-	// entities (the target of an edge), so applying them eagerly would let a
-	// later failure leave those shared entities in a half-updated state. This is
-	// the commit half of a two-phase parse: stage on failure, apply on success.
+	// Normalizations (marking the key unique) are collected here and applied
+	// only once the whole entity has validated successfully. This is the commit
+	// half of a two-phase parse: stage on failure, apply on success. What an
+	// O2O makes of its pair is staged the same way, in [Parse], since it
+	// mutates options that belong to another entity (the target of an edge).
 	commits := []func(){}
 
 	// Parse props.
@@ -212,7 +211,32 @@ func parseEntity(
 		return nil, fmt.Errorf(".{indexes}%w", errors.Join(errs...))
 	}
 
-	// Find inverse for the edges.
+	rpcs, err := parseRpcs(ctx, g, v, opts.GetRpc())
+	if err != nil {
+		return nil, err
+	}
+	v.rpcs = rpcs
+
+	// Validation passed; apply the staged normalizations now (see commits above).
+	for _, commit := range commits {
+		commit()
+	}
+
+	committed = true
+	return v, nil
+}
+
+// resolveInverses finds the edge each `from` names, and stages what a
+// one-to-one makes of the pair.
+//
+// [Parse] calls it once every entity of the file and its edges are parsed, so
+// that `from` finds its edge wherever each is declared. Run inside
+// parseEntity, it would look at a target parsed on the way to this entity,
+// whose own edges were not all there yet, and say the edge was not found.
+func (v *protoEntity) resolveInverses() ([]func(), error) {
+	errs := []error{}
+	commits := []func(){}
+
 	for edge_ := range v.Edges() {
 		edge := edge_.(*protoEdge)
 		if !edge.opts.HasFrom() {
@@ -258,19 +282,7 @@ func parseEntity(
 		return nil, errors.Join(errs...)
 	}
 
-	rpcs, err := parseRpcs(ctx, g, v, opts.GetRpc())
-	if err != nil {
-		return nil, err
-	}
-	v.rpcs = rpcs
-
-	// Validation passed; apply the staged normalizations now (see commits above).
-	for _, commit := range commits {
-		commit()
-	}
-
-	committed = true
-	return v, nil
+	return commits, nil
 }
 
 func (e *protoEntity) Descriptor() protoreflect.MessageDescriptor {

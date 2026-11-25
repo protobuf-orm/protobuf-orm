@@ -94,7 +94,7 @@ is always *either* a `Field` *or* an `Edge`:
   Only the edge that holds the key may say that: one that is not a list,
   unless it is the To side of a one-to-one (no `Inverse()`, and a `Reverse()`
   that is not a list). It is checked at the end of `Parse`, once every entity
-  of the file is whole.
+  of the file is whole (see [Parsing pipeline](#parsing-pipeline)).
 
 `Prop` exposes presence/constraint predicates: `IsList`, `IsUnique`,
 `IsNullable`, `IsImmutable`, `IsOptional`, `HasDefault`.
@@ -163,9 +163,15 @@ type to its storage category.
    - Resolves the **key** (exactly one `key:true` field; made implicitly unique
      and immutable) and validates key constraints.
    - Parses **indexes**.
-   - Resolves edge **inverses** via `from:` back-references, inferring O2O vs
-     O2M cardinality and unique-ness.
    - Parses **RPCs**.
+4. Once every entity of the file is parsed, with the ones parsed on the way to
+   an edge's target among them:
+   - Resolves edge **inverses** via `from:` back-references, inferring O2O vs
+     O2M cardinality and unique-ness. It waits until here so that `from` finds
+     its edge wherever each is declared: a target parsed on the way to the
+     entity that names it does not yet have all of its edges.
+   - Checks each edge's `on_delete`, which reads the inverses.
+   - Applies what a one-to-one makes of its pair, and merges the clone back.
 
 `graph.ParseFiles(ctx, g, []*protogen.File)` is the protoc-plugin entry point:
 it parses every file marked for generation.

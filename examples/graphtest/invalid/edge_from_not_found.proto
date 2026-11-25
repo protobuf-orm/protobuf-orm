@@ -1,0 +1,19 @@
+edition = "2023";
+
+package graphtest;
+
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
+
+message EdgeFromNotFound {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  EdgeFromNotFound parent = 2 [(orm.edge) = {}];
+  // There is no field 9.
+  repeated EdgeFromNotFound children = 3 [(orm.edge) = {
+    from: {name: "parent", number: 9}
+  }];
+
+  option (orm.message) = {};
+}

@@ -150,3 +150,34 @@ func TestEdgeOnDelete(t *testing.T) {
 		x.ErrorContains(err, "graphtest.EdgeOnDeleteSetNullNotNullable.parent: on_delete ON_DELETE_SET_NULL clears the edge, and this one is not nullable")
 	}))
 }
+
+// A schema does not mean something else by the order it is written in: `from`
+// finds the edge it names wherever each is declared.
+func TestEdgeFromOrder(t *testing.T) {
+	inverse := func(x *require.Assertions, entity graph.Entity, edge string) graph.Edge {
+		e, ok := iters.Find(entity.Edges(), func(v graph.Edge) bool { return v.Name() == edge })
+		x.True(ok)
+		return e.Inverse()
+	}
+
+	t.Run("a list written from an edge declared after it", WithEntity(graphtest.File_graphtest_edge_from_order_proto, "FromFirstSelf", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
+		x.Equal("graphtest.FromFirstSelf.parent", string(inverse(x, entity, "children").FullName()))
+	}))
+	t.Run("across two entities, the one written from first", WithEntity(graphtest.File_graphtest_edge_from_order_proto, "FromFirstMember", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
+		x.Equal("graphtest.FromFirstGroup.members", string(inverse(x, entity, "group").FullName()))
+	}))
+	t.Run("across two entities, the one it names first", WithEntity(graphtest.File_graphtest_edge_from_order_proto, "NamedFirstMember", func(x *require.Assertions, g *graph.Graph, entity graph.Entity) {
+		x.Equal("graphtest.NamedFirstGroup.members", string(inverse(x, entity, "group").FullName()))
+
+		group := g.Entities["graphtest.NamedFirstGroup"]
+		members, ok := iters.Find(group.Edges(), func(v graph.Edge) bool { return v.Name() == "members" })
+		x.True(ok)
+		x.Equal("graphtest.NamedFirstMember.group", string(members.Reverse().FullName()))
+	}))
+	t.Run("a from that names no edge is still refused", WithGraph(func(ctx context.Context, x *require.Assertions, g *graph.Graph) {
+		err := graph.Parse(ctx, g, graphtest.File_graphtest_invalid_edge_from_not_found_proto)
+		x.Error(err)
+		x.ErrorContains(err, "graphtest.EdgeFromNotFound.children: back reference not found on the target entity: graphtest.EdgeFromNotFound[9]")
+		x.Empty(g.Entities)
+	}))
+}

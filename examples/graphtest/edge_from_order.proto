@@ -1,0 +1,57 @@
+edition = "2023";
+
+package graphtest;
+
+import "orm.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/internal/examples/graphtest";
+
+// The edge written `from` comes first, the one it names after it.
+message FromFirstSelf {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  repeated FromFirstSelf children = 2 [(orm.edge) = {
+    from: {name: "parent", number: 3}
+  }];
+  FromFirstSelf parent = 3 [(orm.edge) = {}];
+
+  option (orm.message) = {};
+}
+
+// Across two entities, the one written `from` first.
+message FromFirstMember {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  FromFirstGroup group = 2 [(orm.edge) = {
+    from: {name: "members", number: 2}
+  }];
+
+  option (orm.message) = {};
+}
+
+message FromFirstGroup {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  repeated FromFirstMember members = 2 [(orm.edge) = {}];
+
+  option (orm.message) = {};
+}
+
+// Across two entities, the one it names first.
+message NamedFirstGroup {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  repeated NamedFirstMember members = 2 [(orm.edge) = {}];
+
+  option (orm.message) = {};
+}
+
+message NamedFirstMember {
+  int32 id = 1 [(orm.field) = {key: true}];
+
+  NamedFirstGroup group = 2 [(orm.edge) = {
+    from: {name: "members", number: 2}
+  }];
+
+  option (orm.message) = {};
+}
