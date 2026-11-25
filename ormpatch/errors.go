@@ -236,6 +236,27 @@ func (e *VersionWriteError) Error() string {
 	return fmt.Sprintf("%s: %s is the version, which the server stamps: a patch may test it but not write it", e.At, e.Prop)
 }
 
+// ErasedWriteError is a document that writes the erased field.
+//
+// A row is erased by asking to erase it, not by assigning a date to it: Erase
+// may do more than write the column, and a document that stamped it would be a
+// second way to erase that skips the rest. Clearing it would be a delete
+// undone, which no RPC means. This is why a PatchRequest has no field for it,
+// and an Apply's document is held to the same rule.
+//
+// A `test` on it is untouched: asking whether a row is erased writes nothing.
+//
+// Like [VersionWriteError] this is the ORM's own rule rather than a format
+// violation, so it carries no [patch.Code].
+type ErasedWriteError struct {
+	At   patch.At
+	Prop string
+}
+
+func (e *ErasedWriteError) Error() string {
+	return fmt.Sprintf("%s: %s says whether the row is erased, which the server stamps: a row is erased by asking to erase it, and a patch may test it but not write it", e.At, e.Prop)
+}
+
 // UUIDLen is how many bytes a value of [ormpb.Type_TYPE_UUID] has.
 //
 // Proto has no fixed-width bytes, so the schema says UUID, the wire says bytes,

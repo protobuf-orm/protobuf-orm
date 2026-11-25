@@ -384,7 +384,9 @@ writing `nullable: false` beside it is refused rather than quietly overruled.
 generated PatchRequest, so `graph.PatchProps` does not yield it. A request that
 could assign the date would be a second way to erase a row -- one that skips
 whatever `Erase` does besides writing the column -- and one that could *clear*
-it would be a delete undone, which no RPC means.
+it would be a delete undone, which no RPC means. An Apply's document is held to
+the same rule: `assign` and `remove` on the erased field are refused with
+`ormpatch.ErasedWriteError`, and a `test` on it compiles as any other.
 
 **A unique index covers only the rows that are still there.** This is the part
 that is easy to get wrong and is therefore the default: a soft-deleted row goes

@@ -336,6 +336,10 @@ func withVersioned(f func(p *probe)) func(*testing.T) {
 	return withProbe(graphtest.File_graphtest_version_proto, "VersionField", f)
 }
 
+func withErased(f func(p *probe)) func(*testing.T) {
+	return withProbe(graphtest.File_graphtest_erased_proto, "ErasedField", f)
+}
+
 func writeTo(x *require.Assertions, plan *ormpatch.Plan, name string) ormpatch.Write {
 	w, ok := findWrite(plan, name)
 	if !ok {
